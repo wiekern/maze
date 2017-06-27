@@ -6,10 +6,10 @@ function MazeGame(canvas, options) {
 			finish: "#65c644",
 			visited_block: "#d7edff"
 		},
-		starting_position: { x: 0, y: 0 },
+		starting_position: { x: 0, y: 0, dir: "right"},
 		level_size: [16, 10],
 		offset: {x: 0, y: 0},
-		scale: 26,
+		scale: 52,
 		user_diameter: 4,
 		user_path_width: 8,
 		onStart: function(){},
@@ -28,6 +28,22 @@ function MazeGame(canvas, options) {
 		"up"	:	{ x: 0, y:	-1 },
 		"right"	:	{ x: 1, y: 0 },
 		"down"	:	{ x: 0, y: 1 }
+	};
+
+	// width: 1029, height: 51, 21 mans
+	// 49px width/man
+	var manWidth = 49, manHeight = 51;
+	var manDirections = {
+		"up"	: 	{sx: 0, sy: 0},
+		"right"	: 	{sx: 4 * manWidth, sy: 0},
+		"down"	: 	{sx: 8 * manWidth, sy: 0},
+		"left" 	: 	{sx: 12 * manWidth, sy: 0}
+	};
+	var directions = {
+		"left" 	: 	"left",
+		"up" 	: 	"up",
+		"right" : 	"right",
+		"down" 	: 	"down"
 	};
 
 	var rand = new Rand();
@@ -210,9 +226,11 @@ function MazeGame(canvas, options) {
 	}
 	
 	this.move = function(direction) {
+
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
-			y: currentPos.y + offsets[direction].y
+			y: currentPos.y + offsets[direction].y,
+			dir: direction
 		};
 		if (gameInProgress && maze.inBounds(newPos.x, newPos.y)) {
 			if (maze.getCell(currentPos.x, currentPos.y)[direction] === false) {
@@ -237,8 +255,43 @@ function MazeGame(canvas, options) {
 		}
 		ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
 		ctx.stroke();
-		circle(currentPos.x, currentPos.y, options.colors.current_position);
-		// ctx.drawImage(0);
+		// circle(currentPos.x, currentPos.y, options.colors.current_position);
+
+		var img = new Image();
+		// width: 1029, height: 51, 21 mans
+		// 49px width/man
+		img.src = '/static/imgs/pegman.png';
+		img.onload = function () {
+			var sx = 0, sy = 0, dir = "right";
+			if (currentPos.x === 0 && currentPos.y === 0) {
+				let neighbor = maze.randomNeighbor(currentPos.x, currentPos.y),
+					currentCell = maze.getCell(0, 0);
+				if (currentCell.right === false) {
+					dir = "right";
+				} else if (currentCell.down === false) {
+					dir = "down";
+				} else {
+					console.log("The maze not produced incorrectly.")
+				}
+			} else {
+				if (currentPos.dir === "up") {
+					dir = "up";
+				} else if (currentPos.dir == "right") {
+					dir = "right";
+				} else if (currentPos.dir == "down") {
+					dir = "down";
+				} else if (currentPos.dir == "left") {
+					dir = "left";
+				}
+
+			}
+ 			currentDir = directions[dir]; // record current direction.
+			sx = manDirections[dir].sx;
+			sy = manDirections[dir].sy;
+			let x = options.offset.x + currentPos.x * options.scale,
+				y = options.offset.y + currentPos.y * options.scale;
+			ctx.drawImage(img, sx, sy, 49, 51, x, y, 49, 51);
+		};
 	}
 	
 	function drawMaze() {
