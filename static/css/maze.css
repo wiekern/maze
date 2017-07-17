@@ -3,7 +3,7 @@ body {
 	font-family:"Droid Sans",Helvetica,Arial,sans;
 	font-size:14px;
 	margin:0;
-	overflow:hidden;
+	overflow: scroll;
 }
 
 html, body {
@@ -12,7 +12,7 @@ html, body {
 
 canvas {
 	display:block;
-	position:absolute;
+	/*position:absolute;*/
 }
 
 a, a:visited {
@@ -44,15 +44,14 @@ h1 {
 }
 
 #a {
-	position:relative;
-	margin:0 auto;
+	/*position:relative;*/
+	margin: 0 auto;
 }
 
 #options {
 	display:none;
-	position:absolute;
+	/*position:absolute;*/
 	top:50%;
-	left:0;
 	color:#fff;
 	text-align:center;
 	left:0;
@@ -69,7 +68,25 @@ h1 {
 		display:none;
 	}
 
-form {
+form #w {
+	background: #000;
+	border: 1px solid #333;
+	color: #fff;
+	padding: .3em;
+	font-size: .9em;
+	width: 4em;
+}
+
+form #h {
+	background: #000;
+	border: 1px solid #333;
+	color: #fff;
+	padding: .3em;
+	font-size: .9em;
+	width: 4em;
+}	
+
+/*form {
 	text-align:center;
 }
 	form label {
@@ -96,10 +113,45 @@ form {
 		padding: .3em 1.4em;
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 1);
 		cursor: pointer;
-	}
+	}*/
 
 fieldset {
 	border:none;
 	margin:0 0 10px;
 	padding:0;
+}
+
+.container-fluid .row {
+	margin-bottom: 5px;
+}
+
+.modal-dialog {
+	top: 200px;
+}
+
+.modal-content {
+	background-color: rgba(0,0,0,0);
+}
+
+.btn-transparent {
+	background-color: transparent;
+}
+.main-content {
+	width: 100%;
+}
+
+.left-content {
+	float: left;
+	width: 80%;
+	display: inline;
+}
+
+.right-content {
+	float: left;
+	width: 20%;
+	display: inline;
+}
+
+.clear {
+	clear: both;
 }

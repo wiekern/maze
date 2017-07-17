@@ -3,12 +3,17 @@
 <head>
 	<title>Maze</title>
 	<meta charset="utf-8" />
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/static/css/maze.css" />
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> -->
+	<!-- <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script> -->
+	<script type="text/javascript" src="/static/js/jquery.js"></script>
+	<script type="text/javascript" src="/static/js/tether.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="/static/js/maze.js"></script>
-  <script src="/static/js/blockly/blockly_compressed.js"></script>
-  <script src="/static/js/blockly/javascript_compressed.js"></script>
-  <script src="/static/js/blockly/msg/en.js"></script>
+  	<script src="/static/js/blockly/blockly_compressed.js"></script>
+  	<script src="/static/js/blockly/javascript_compressed.js"></script>
+  	<script src="/static/js/blockly/msg/en.js"></script>
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
 	<script>
 		var mazeGame;
@@ -25,7 +30,7 @@
 				showTime();
 				showSteps();
 			}
-		}
+		};
 		
 		$(document).ready(function () {
 			mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
@@ -43,10 +48,83 @@
 				if (!$(e.target).is("#options") && $(e.target).parents('#options').length == 0)
 					$('#options').hide();
 			});
-			$('a[href=#options]').on('click', function(){
+			// $('a[href=#options]').on('click', function(){
+			$('a[href*=\\#options]').on('click', function(){
 				center($('#options').show());
 				return false;
 			});
+
+			$('#myup').on('click', function(){
+				$('#situationModal').modal({show: false});
+
+				mazeGame.setSituation();
+				mazeGame.storeAction("up");
+				mazeGame.move(mazeGame.getForwardDir("up"));
+
+				while (mazeGame.isSituationExisted()) {
+					if (!mazeGame.curPosInPath()) {
+						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
+					} else {
+						break;
+					}
+				} 
+
+				showSituation();
+			});
+			$('#mydown').on('click', function(){
+				$('#situationModal').modal({show: false});
+
+				mazeGame.setSituation();
+				mazeGame.storeAction("down");
+				mazeGame.move(mazeGame.getForwardDir("down"));
+
+				while (mazeGame.isSituationExisted()) {
+					if (!mazeGame.curPosInPath()) {
+						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
+					} else {
+						break;
+					}
+				} 
+
+				showSituation();
+			});
+			$('#myleft').on('click', function(){
+				$('#situationModal').modal({show: false});
+
+
+				mazeGame.setSituation();
+				mazeGame.storeAction("left");
+				mazeGame.move(mazeGame.getForwardDir("left"));
+
+				while (mazeGame.isSituationExisted()) {
+					if (!mazeGame.curPosInPath()) {
+						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
+					} else {
+						break;
+					}
+				}
+
+				showSituation();
+			});
+			$('#myright').on('click', function() {
+				$('#situationModal').modal({show: false});
+
+				mazeGame.setSituation();
+				mazeGame.storeAction("right");
+				mazeGame.move(mazeGame.getForwardDir("right"));
+
+				while (mazeGame.isSituationExisted()) {
+					if (!mazeGame.curPosInPath()) {
+						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
+					} else {
+						break;
+					}
+				} 
+				
+				showSituation();
+			});
+
+			showSituation();
 		});
 		
 		$(window).on('keydown', function (e) {
@@ -64,6 +142,8 @@
 			if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
 				// send arrow keys and wsad to game
 				mazeGame.move(keyCodes[keyCode]);
+				// mazeGame.animate(keyCodes[keyCode])
+				showSituation();
 				return false;
 			} else if (keyCode === 27) {
 				// close options on escape
@@ -71,9 +151,49 @@
 				return false;
 			}
 		});
-		
+
+		function showSituation() {
+			if (mazeGame != undefined) {
+
+				let situation = mazeGame.getSituation();
+
+				if (situation["up"] === false) {
+					$('#myup').removeClass().addClass("btn btn-success btn-transparent disabled");
+					$('#myup').text("Vorne Frei");
+				} else {
+					$('#myup').removeClass().addClass("btn btn-default disabled btn-transparent");
+					$('#myup').text("Vorne Belegt");
+				}
+				// if (situation["down"] === false) {
+				// 	$('#mydown').removeClass().addClass("btn btn-success btn-transparent disabled");
+				// 	$('#mydown').text("Hinten Frei");
+				// } else {
+				// 	$('#mydown').removeClass().addClass("btn btn-default disabled btn-transparent");
+				// 	$('#mydown').text("Hinten Belegt");
+				// }
+				if (situation["left"] === false) {
+					$('#myleft').removeClass().addClass("btn btn-success btn-transparent disabled");
+					$('#myleft').text("Links Frei");
+				} else {
+					$('#myleft').removeClass().addClass("btn btn-default disabled btn-transparent");
+					$('#myleft').text("Links Belegt");
+				}
+				if (situation["right"] === false) {
+					$('#myright').removeClass().addClass("btn btn-success btn-transparent disabled");
+					$('#myright').text("Rechts Frei");
+				} else {
+					$('#myright').removeClass().addClass("btn btn-default disabled btn-transparent");
+					$('#myright').text("Rechts Belegt");
+				}
+
+				$('#rotatedAngle').text(mazeGame.getAngle() + " Grad");
+
+				$('#situationModal').modal({show: true});
+			}
+		}
+
 		function center(e) {
-			e.css('top', $("#maze").offset().top + $("#maze").height() / 2 - e.outerHeight() / 2)
+			e.css('top', $("#maze").offset().top + $("#maze").height() / 2 - e.outerHeight() / 2);
 		}
 		
 		function showTime() {
@@ -94,20 +214,90 @@
 	</script>
 </head>
 <body>
-	<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
-	<div id="a">
-		<h1>Maze<span> <a href="#options">options</a></span></h1>
-		<div id="time"></div><div id="steps"></div>
+<div class="main-content">
+	<div class="left-content">
+		<div id="a">
+			<h1>Maze<span> <a href="#options">options</a></span></h1>
+			<!-- <div id="time"></div><div id="steps"></div> -->
+		</div>
+		<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
+		<!-- <div id="time"></div><div id="steps"></div> -->
+		<div id="options">
+			<form>
+				<label for="w" class="sr-only">Width</label>
+				<label for="h" class="sr-only">Height</label>
+				<input id="w" type="number" min="2" step="1" value="10" />
+				by
+				<input id="h" type="number" min="2" step="1" value="10" />
+				<button type="submit" class="btn btn-primary">Generate Maze</button>
+			</form>
+		</div>
+
 	</div>
-	<div id="options">
-		<form>
-			<label for="w">Width</label>
-			<label for="h">Height</label>
-			<input id="w" type="number" min="2" step="1" value="16" />
-			by
-			<input id="h" type="number" min="2" step="1" value="10" />
-			<button type="submit">Generate Maze</button>
-		</form>
+	
+	<div class="right-content">
+		<ul class="list-group">
+			<li>test</li>
+		</ul>
+	</div>
+	<br class="clear" />
+</div>
+
+	<!-- trigger popup -->
+<!-- 	<button type="button" id="popupButton" class="btn btn-primary" data-toggle="modal" data-target="#situationModal" style="visibility: hidden;">
+	  Launch demo modal
+	</button> -->
+
+	<div class="modal fade" id="situationModal" tabindex="-1" role="dialog" aria-labelledby="situationModalLabel" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h4 class="modal-title" id="situationModalLabel">Aktueller Zustand</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <div class="container-fluid">
+	        	<div class="row">
+	        		<div class="col-md-offset-5 col-md-3">
+	        			<a id="myup" class="btn btn-primary" style="width:120px">Vorne </a>
+	        		</div>
+	        		<div class="col-md-3">
+	        			<a id="rotatedAngle" class="btn btn-primary btn-transparent disabled" style="width:120px">Winkel </a>
+	        		</div>
+	        	</div>
+	        	<div class="row">
+	        		<div class="col-md-3 col-md-offset-2">
+	        			<a id="myleft" class="btn btn-primary" style="width:120px">Links </a>
+	        		</div>
+	        		<div class="col-md-3">
+	        		</div>
+					<div class="col-md-3">
+						<a id="myright" class="btn btn-default" style="width:120px">Rechts </a>
+	        		</div>
+	        	</div>
+	        </div>
+	        <hr />
+	        <div class="container-fluid">
+	        	<div class="row">
+	        		<div class="col-md-3 col-md-offset-2">
+	        			<a id="turn-left" class="btn btn-success btn-transparent" style="width:120px">Links drehnen</a>
+	        		</div>
+	        		<div class="col-md-3">
+	        			<a id="go-forward" class="btn btn-success btn-transparent" style="width:120px">Vorwaert laufen</a>
+	        		</div>
+					<div class="col-md-3">
+						<a id="turn-right" class="btn btn-success btn-transparent" style="width:120px">Rechts drehnen</a>
+	        		</div>
+	        	</div>
+	        </div>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
 	</div>
 </body>
 </html>
