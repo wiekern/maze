@@ -158,6 +158,24 @@ fieldset {
 	display: inline-block;
 }
 
+ul {
+	padding-left: 0;
+}
+
+#new-rule {
+	margin-bottom: 10px;
+}
+
+#rule-list {
+	max-height: 300px;
+    overflow-y:scroll; 
+}
+
+#action-list {
+	max-height: 300px;
+    overflow-y:scroll; 
+}
+
 .clear {
 	clear: both;
 }

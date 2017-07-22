@@ -492,11 +492,24 @@ function MazeGame(canvas, options) {
 		}
 	};
 
+	this.isMetWall = function(direction) {
+		var newPos = {
+			x: currentPos.x + offsets[direction].x,
+			y: currentPos.y + offsets[direction].y,
+			dir: direction
+		};
+		if (maze.getCell(currentPos.x, currentPos.y)[direction] === true) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+
 	this.getForwardDir = function (turnTo) {
 		updateAngle(turnTo);
 		let f = faceTos[currentPos.dir];
 		// console.log("[getForwardDir] pos:" + currentPos.x +" " + currentPos.y);
-		console.log('[getForwardDir] old dir:' + currentPos.dir + ',forward dir:' + f[turnTo]);
+		// console.log('[getForwardDir] old dir:' + currentPos.dir + ',forward dir:' + f[turnTo]);
 		return f[turnTo];
 	};
 
@@ -609,12 +622,12 @@ function MazeGame(canvas, options) {
 						options.onGameEnd(true);
 					}
 				} else {
-					console.log("meet a rand.");
+					console.log("meet a wall.");
 				}
 			} else {
 				currentPos.dir = direction;
 				// path.push(currentPos);
-				console.log('adjust direction from ' + oldPos.dir + ' to ' + currentPos.dir + ' at the same postion.');
+				// console.log('adjust direction from ' + oldPos.dir + ' to ' + currentPos.dir + ' at the same postion.');
 				draw();
 				showSteps();
 				if (maze.isEnd(currentPos.x, currentPos.y)) {
@@ -695,7 +708,7 @@ function MazeGame(canvas, options) {
  			currentDir = directions[dir]; // record current direction.
 			imgX = manDirections[dir].x;
 			imgY = manDirections[dir].y;
-			console.log(options.offset.x + " " + options.offset.y);
+			// console.log(options.offset.x + " " + options.offset.y);
 			dx = options.offset.x + currentPos.x * options.scale,
 			dy = options.offset.y + currentPos.y * options.scale,
 			sx = options.offset.x + oldPos.x * options.scale,

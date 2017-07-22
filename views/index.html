@@ -63,23 +63,32 @@
 				$(this).parent().remove();
 			});
 
+			$('#action-list').delegate('a', 'click', function() {
+				mazeGame.removeRule($(this).attr('name'));
+				$(this).parent().remove();
+			});
+
 			$('#go-forward').on('click', function(){
-				$('#situationModal').modal('hide');
-
-				mazeGame.setSituation(true);
-				mazeGame.storeAction("up");
-
-				let situation = mazeGame.getLongSituation();
-				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
+				$('#situation-modal').modal('hide');
 
 				let forwardDir = mazeGame.getForwardDir("up");
-				showCurrentStatus(forwardDir);
-				mazeGame.move(forwardDir);
+				if (!mazeGame.isMetWall(forwardDir)) {
+					mazeGame.setSituation(true);
+					mazeGame.storeAction("up");
 
+					let situation = mazeGame.getLongSituation();
+					$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
+
+					showCurrentStatus(forwardDir);
+					mazeGame.move(forwardDir);
+				} else {
+					return;
+				}
+				
 				while (mazeGame.isSituationExisted()) {
 					if (mazeGame.foundExit()) {
-						$('#situationModal').modal('hide');
-						return ;
+						$('#situation-modal').modal('hide');
+						return;
 					}
 					if (mazeGame.turnCircle()) {
 						break;
@@ -87,27 +96,28 @@
 					if (mazeGame.curPosInCrossPos()) {
 						break;
 					}
-					if (!mazeGame.situationChanged()) {
-						break;
-					}
 
 					let forwardDir = mazeGame.getForwardDir(mazeGame.getActionOfSituation());
-					showCurrentStatus(forwardDir);
-					mazeGame.move(forwardDir);
+					if (!mazeGame.isMetWall(forwardDir)) {
+						showCurrentStatus(forwardDir);
+						mazeGame.move(forwardDir);
+					} else {
+						break;
+					}
 				} 
 
 				if (!mazeGame.foundExit()) {
 					console.log('not end');
-					$('#situationModal').one('hidden.bs.modal', function (e) {
+					$('#situation-modal').one('hidden.bs.modal', function (e) {
 						showSituation();
 					});
 				} else {
 					console.log('end');
-					$('#situationModal').modal('hide');
+					$('#situation-modal').modal('hide');
 				}
 			});
 			$('#turn-left').on('click', function(){
-				$('#situationModal').modal('hide');
+				$('#situation-modal').modal('hide');
 
 				mazeGame.setSituation(true);
 				mazeGame.storeAction("left");
@@ -120,14 +130,12 @@
 				mazeGame.move(forwardDir);
 				mazeGame.turnCircle();
 
-				$('#situationModal').one('hidden.bs.modal', function (e) {
+				$('#situation-modal').one('hidden.bs.modal', function (e) {
 					showSituation();
 				});
 			});
 			$('#turn-right').on('click', function() {
-				$('#situationModal').modal('hide');
-				// $('body').removeClass('modal-open');
-				// $('.modal-backdrop').remove();
+				$('#situation-modal').modal('hide');
 
 				mazeGame.setSituation(true);
 				mazeGame.storeAction("right");
@@ -140,7 +148,7 @@
 				mazeGame.move(forwardDir);
 				mazeGame.turnCircle();
 				
-				$('#situationModal').one('hidden.bs.modal', function (e) {
+				$('#situation-modal').one('hidden.bs.modal', function (e) {
 					showSituation();
 				});
 			});
@@ -164,7 +172,7 @@
 				// send arrow keys and wsad to game
 				mazeGame.move(keyCodes[keyCode]);
 				if (mazeGame.foundExit()) {
-					$('#situationModal').modal('show');
+					$('#situation-modal').modal('show');
 				} else {
 					showSituation();
 				}
@@ -180,7 +188,10 @@
 			let status = mazeGame.getCurrentStatus();
 			$('#action-list').append('<li class="list-group-item">' + 'faceTo:' + 
 				status.faceTo + ', Spalte:' + status.x + ', Zeile:' + status.y + ' | '
-				+ forwardDir + '<a class="badge" name="' + '000' + '">' + '&times;</a>' + ' </li>');
+				+ forwardDir + '</li>');
+			// $('#action-list').append('<li class="list-group-item">' + 'faceTo:' + 
+			// 	status.faceTo + ', Spalte:' + status.x + ', Zeile:' + status.y + ' | '
+			// 	+ forwardDir + '<a class="badge" name="' + '000' + '">' + '&times;</a>' + ' </li>');
 		}
 
 		function showSituation() {
@@ -212,7 +223,7 @@
 
 				$('#rotatedAngle').text(mazeGame.getAngle() + " Grad");
 
-				$('#situationModal').modal('show');
+				$('#situation-modal').modal('show');
 			}
 		}
 
@@ -287,8 +298,12 @@
 		
 		<div class="right-content">
 			<div class="panel panel-default">
-				<div class="panel-heading">Regeln</div>
+				<div class="panel-heading">Regeln
+					
+					</button>
+				</div>
   				<div class="panel-body">
+	  				<button id="new-rule" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#situation-modal">Neue Regel</button>
 		    		<ul id="rule-list">
 		    		</ul>
 		  		</div>
@@ -297,7 +312,6 @@
 				<div class="panel-heading">Aktionen</div>
   				<div class="panel-body">
 		    		<ul id="action-list">
-		    			
 		    		</ul>
 		  		</div>
 			</div>
@@ -318,11 +332,11 @@
 	  <block type="text_print"></block>
 	</xml>
 
-	<div class="modal fade" id="situationModal" tabindex="-1" role="dialog" aria-labelledby="situationModalLabel" aria-hidden="true">
+	<div class="modal fade" id="situation-modal" tabindex="-1" role="dialog" aria-labelledby="situation-modalLabel" aria-hidden="true">
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
 	      <div class="modal-header">
-	        <h4 class="modal-title" id="situationModalLabel">Aktueller Zustand</h5>
+	        <h4 class="modal-title" id="situation-modalLabel">Aktueller Zustand</h5>
 	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
 	        </button>
