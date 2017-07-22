@@ -12,6 +12,7 @@ html, body {
 
 canvas {
 	display:block;
+	margin-left: 10px;
 	/*position:absolute;*/
 }
 
@@ -50,7 +51,7 @@ h1 {
 
 #options {
 	display:none;
-	/*position:absolute;*/
+	position:absolute;
 	top:50%;
 	color:#fff;
 	text-align:center;
@@ -142,14 +143,19 @@ fieldset {
 
 .left-content {
 	float: left;
-	width: 80%;
+	width: 60%;
 	display: inline;
 }
 
 .right-content {
+	padding-top: 42px;
 	float: left;
-	width: 20%;
+	width: 40%;
 	display: inline;
+}
+
+.right-content .panel {
+	display: inline-block;
 }
 
 .clear {

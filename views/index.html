@@ -5,15 +5,19 @@
 	<meta charset="utf-8" />
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/static/css/maze.css" />
+	<!-- <link rel="stylesheet" href="/static/css/semantic.css" /> -->
 	<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> -->
 	<!-- <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script> -->
 	<script type="text/javascript" src="/static/js/jquery.js"></script>
 	<script type="text/javascript" src="/static/js/tether.min.js"></script>
 	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	<!-- <script type="text/javascript" src="/static/js/semantic.js"></script> -->
 	<script type="text/javascript" src="/static/js/maze.js"></script>
   	<script src="/static/js/blockly/blockly_compressed.js"></script>
+  	<script src="/static/js/blockly/blocks_compressed.js"></script>
   	<script src="/static/js/blockly/javascript_compressed.js"></script>
   	<script src="/static/js/blockly/msg/en.js"></script>
+  	<script src="/static/js/blockly/msg/de.js"></script>
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
 	<script>
 		var mazeGame;
@@ -54,74 +58,91 @@
 				return false;
 			});
 
-			$('#myup').on('click', function(){
-				$('#situationModal').modal({show: false});
+			$('#rule-list').delegate('a', 'click', function() {
+				mazeGame.removeRule($(this).attr('name'));
+				$(this).parent().remove();
+			});
 
-				mazeGame.setSituation();
+			$('#go-forward').on('click', function(){
+				$('#situationModal').modal('hide');
+
+				mazeGame.setSituation(true);
 				mazeGame.storeAction("up");
-				mazeGame.move(mazeGame.getForwardDir("up"));
+
+				let situation = mazeGame.getLongSituation();
+				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
+
+				let forwardDir = mazeGame.getForwardDir("up");
+				showCurrentStatus(forwardDir);
+				mazeGame.move(forwardDir);
 
 				while (mazeGame.isSituationExisted()) {
-					if (!mazeGame.curPosInPath()) {
-						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
-					} else {
+					if (mazeGame.foundExit()) {
+						$('#situationModal').modal('hide');
+						return ;
+					}
+					if (mazeGame.turnCircle()) {
+						break;
+					} 
+					if (mazeGame.curPosInCrossPos()) {
 						break;
 					}
+					if (!mazeGame.situationChanged()) {
+						break;
+					}
+
+					let forwardDir = mazeGame.getForwardDir(mazeGame.getActionOfSituation());
+					showCurrentStatus(forwardDir);
+					mazeGame.move(forwardDir);
 				} 
 
-				showSituation();
-			});
-			$('#mydown').on('click', function(){
-				$('#situationModal').modal({show: false});
-
-				mazeGame.setSituation();
-				mazeGame.storeAction("down");
-				mazeGame.move(mazeGame.getForwardDir("down"));
-
-				while (mazeGame.isSituationExisted()) {
-					if (!mazeGame.curPosInPath()) {
-						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
-					} else {
-						break;
-					}
-				} 
-
-				showSituation();
-			});
-			$('#myleft').on('click', function(){
-				$('#situationModal').modal({show: false});
-
-
-				mazeGame.setSituation();
-				mazeGame.storeAction("left");
-				mazeGame.move(mazeGame.getForwardDir("left"));
-
-				while (mazeGame.isSituationExisted()) {
-					if (!mazeGame.curPosInPath()) {
-						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
-					} else {
-						break;
-					}
+				if (!mazeGame.foundExit()) {
+					console.log('not end');
+					$('#situationModal').one('hidden.bs.modal', function (e) {
+						showSituation();
+					});
+				} else {
+					console.log('end');
+					$('#situationModal').modal('hide');
 				}
-
-				showSituation();
 			});
-			$('#myright').on('click', function() {
-				$('#situationModal').modal({show: false});
+			$('#turn-left').on('click', function(){
+				$('#situationModal').modal('hide');
 
-				mazeGame.setSituation();
+				mazeGame.setSituation(true);
+				mazeGame.storeAction("left");
+
+				let situation = mazeGame.getLongSituation();
+				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + ','+ situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
+
+				let forwardDir = mazeGame.getForwardDir("left");
+				showCurrentStatus(forwardDir);
+				mazeGame.move(forwardDir);
+				mazeGame.turnCircle();
+
+				$('#situationModal').one('hidden.bs.modal', function (e) {
+					showSituation();
+				});
+			});
+			$('#turn-right').on('click', function() {
+				$('#situationModal').modal('hide');
+				// $('body').removeClass('modal-open');
+				// $('.modal-backdrop').remove();
+
+				mazeGame.setSituation(true);
 				mazeGame.storeAction("right");
-				mazeGame.move(mazeGame.getForwardDir("right"));
 
-				while (mazeGame.isSituationExisted()) {
-					if (!mazeGame.curPosInPath()) {
-						mazeGame.move(mazeGame.getForwardDir(mazeGame.getActionOfSituation()));
-					} else {
-						break;
-					}
-				} 
+				let situation = mazeGame.getLongSituation();
+				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + ','+ situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
+
+				let forwardDir = mazeGame.getForwardDir("right");
+				showCurrentStatus(forwardDir);
+				mazeGame.move(forwardDir);
+				mazeGame.turnCircle();
 				
-				showSituation();
+				$('#situationModal').one('hidden.bs.modal', function (e) {
+					showSituation();
+				});
 			});
 
 			showSituation();
@@ -142,8 +163,11 @@
 			if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
 				// send arrow keys and wsad to game
 				mazeGame.move(keyCodes[keyCode]);
-				// mazeGame.animate(keyCodes[keyCode])
-				showSituation();
+				if (mazeGame.foundExit()) {
+					$('#situationModal').modal('show');
+				} else {
+					showSituation();
+				}
 				return false;
 			} else if (keyCode === 27) {
 				// close options on escape
@@ -151,6 +175,13 @@
 				return false;
 			}
 		});
+
+		function showCurrentStatus(forwardDir) {
+			let status = mazeGame.getCurrentStatus();
+			$('#action-list').append('<li class="list-group-item">' + 'faceTo:' + 
+				status.faceTo + ', Spalte:' + status.x + ', Zeile:' + status.y + ' | '
+				+ forwardDir + '<a class="badge" name="' + '000' + '">' + '&times;</a>' + ' </li>');
+		}
 
 		function showSituation() {
 			if (mazeGame != undefined) {
@@ -164,13 +195,6 @@
 					$('#myup').removeClass().addClass("btn btn-default disabled btn-transparent");
 					$('#myup').text("Vorne Belegt");
 				}
-				// if (situation["down"] === false) {
-				// 	$('#mydown').removeClass().addClass("btn btn-success btn-transparent disabled");
-				// 	$('#mydown').text("Hinten Frei");
-				// } else {
-				// 	$('#mydown').removeClass().addClass("btn btn-default disabled btn-transparent");
-				// 	$('#mydown').text("Hinten Belegt");
-				// }
 				if (situation["left"] === false) {
 					$('#myleft').removeClass().addClass("btn btn-success btn-transparent disabled");
 					$('#myleft').text("Links Frei");
@@ -188,7 +212,7 @@
 
 				$('#rotatedAngle').text(mazeGame.getAngle() + " Grad");
 
-				$('#situationModal').modal({show: true});
+				$('#situationModal').modal('show');
 			}
 		}
 
@@ -214,39 +238,85 @@
 	</script>
 </head>
 <body>
-<div class="main-content">
-	<div class="left-content">
-		<div id="a">
-			<h1>Maze<span> <a href="#options">options</a></span></h1>
+	<div class="main-content">
+		<div class="left-content">
+			<div id="a">
+				<h1>Maze<span> <a href="#options">options</a></span></h1>
+				<!-- <div id="time"></div><div id="steps"></div> -->
+			</div>
+			<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
 			<!-- <div id="time"></div><div id="steps"></div> -->
+			<div id="options">
+				<form class="form-horizontal">
+					<div class="form-group">
+						<label for="w" class="sr-only">Width</label>
+						<label for="h" class="sr-only">Height</label>
+						<input id="w" type="number" min="2" step="1" value="10" />
+						by
+						<input id="h" type="number" min="2" step="1" value="10" />
+					</div>
+					<div class="form-group">
+						<div class="radio">
+							<label>
+								<input id="level1" type="radio" name="levelOptions" value="1 Inseln" />
+								1 Inseln
+							</label>
+							
+						</div>
+						<div class="radio">
+							<label>
+								<input id="level2" type="radio" name="levelOptions" value="ohne Inseln" />
+								ohne Inseln
+							</label>
+							
+						</div>
+						<div class="radio">
+							<label>
+								<input id="level3" type="radio" name="levelOptions" value="zufaellig" />
+								zufaellig
+							</label>
+							
+						</div>
+					</div>
+					
+					<button type="submit" class="btn btn-primary">Generate Maze</button>
+				</form>
+			</div>
+
 		</div>
-		<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
-		<!-- <div id="time"></div><div id="steps"></div> -->
-		<div id="options">
-			<form>
-				<label for="w" class="sr-only">Width</label>
-				<label for="h" class="sr-only">Height</label>
-				<input id="w" type="number" min="2" step="1" value="10" />
-				by
-				<input id="h" type="number" min="2" step="1" value="10" />
-				<button type="submit" class="btn btn-primary">Generate Maze</button>
-			</form>
+		
+		<div class="right-content">
+			<div class="panel panel-default">
+				<div class="panel-heading">Regeln</div>
+  				<div class="panel-body">
+		    		<ul id="rule-list">
+		    		</ul>
+		  		</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">Aktionen</div>
+  				<div class="panel-body">
+		    		<ul id="action-list">
+		    			
+		    		</ul>
+		  		</div>
+			</div>
 		</div>
+		<br class="clear" />
 
 	</div>
 	
-	<div class="right-content">
-		<ul class="list-group">
-			<li>test</li>
-		</ul>
-	</div>
-	<br class="clear" />
-</div>
+	<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
 
-	<!-- trigger popup -->
-<!-- 	<button type="button" id="popupButton" class="btn btn-primary" data-toggle="modal" data-target="#situationModal" style="visibility: hidden;">
-	  Launch demo modal
-	</button> -->
+	<xml id="toolbox" style="display: none">
+	  <block type="controls_if"></block>
+	  <block type="controls_repeat_ext"></block>
+	  <block type="logic_compare"></block>
+	  <block type="math_number"></block>
+	  <block type="math_arithmetic"></block>
+	  <block type="text"></block>
+	  <block type="text_print"></block>
+	</xml>
 
 	<div class="modal fade" id="situationModal" tabindex="-1" role="dialog" aria-labelledby="situationModalLabel" aria-hidden="true">
 	  <div class="modal-dialog" role="document">
@@ -294,10 +364,15 @@
 	        </div>
 	      </div>
 	      <div class="modal-footer">
-	        <button type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
+	        <button  id="close-modal" type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
 	      </div>
 	    </div>
 	  </div>
 	</div>
+
+	<script>
+	  var workspace = Blockly.inject('blocklyDiv',
+	      {toolbox: document.getElementById('toolbox')});
+	</script>
 </body>
 </html>
