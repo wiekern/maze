@@ -103,6 +103,8 @@ function MazeGame(canvas, options) {
 			x: this.width - 1,
 			y: this.height - 1
 		};
+		this.levelOption = options.levelOption;
+		this.mazeLevel = 0;
 		this.hasIsland = false;
 		this.island;
 		this.c;
@@ -265,7 +267,21 @@ function MazeGame(canvas, options) {
 					this.mazeDo();
 				}
 			}
-			this.generateIsland();
+
+			if (this.levelOption === "random") {
+				let r = Math.round(Math.random());
+				if (r === 0) {
+					this.mazeLevel = 0;
+				} else if (r === 1){
+					this.mazeLevel = 1;
+				}
+			} else if (this.levelOption === "one") {
+				this.mazeLevel = 1;
+			}
+
+			if (this.mazeLevel === 1) {
+				this.generateIsland();
+			} 
 		};
 		this.mazeDo = function () {
 			if (!this.isEdge(this.c.x, this.c.y) && !this.hasIsland) {
@@ -287,7 +303,6 @@ function MazeGame(canvas, options) {
 		};
 		this.initMaze();
 		this.generateMaze();
-
 	}
 	
 	function setup(height, width) {

@@ -18,6 +18,7 @@
   	<script src="/static/js/blockly/javascript_compressed.js"></script>
   	<script src="/static/js/blockly/msg/en.js"></script>
   	<script src="/static/js/blockly/msg/de.js"></script>
+  	<script src="/static/js/blockly/custom/blocks.js"></script>
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
 	<script>
 		var mazeGame;
@@ -41,6 +42,7 @@
 			
 			$("form").on('submit', function () {
 				mazeOptions.level_size = [$('#w').val(), $('#h').val()];
+				mazeOptions.levelOption = $('#level-option input:radio:checked').val();
 				mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
 				$('#options, #end-game').hide();
 				return false;
@@ -266,24 +268,24 @@
 						by
 						<input id="h" type="number" min="2" step="1" value="10" />
 					</div>
-					<div class="form-group">
+					<div id="level-option" class="form-group">
 						<div class="radio">
 							<label>
-								<input id="level1" type="radio" name="levelOptions" value="1 Inseln" />
+								<input id="level1" type="radio" name="levelOptions" value="one" checked/>
 								1 Inseln
 							</label>
 							
 						</div>
 						<div class="radio">
 							<label>
-								<input id="level2" type="radio" name="levelOptions" value="ohne Inseln" />
+								<input id="level2" type="radio" name="levelOptions" value="without" />
 								ohne Inseln
 							</label>
 							
 						</div>
 						<div class="radio">
 							<label>
-								<input id="level3" type="radio" name="levelOptions" value="zufaellig" />
+								<input id="level3" type="radio" name="levelOptions" value="random" />
 								zufaellig
 							</label>
 							
@@ -321,8 +323,9 @@
 	</div>
 	
 	<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
+	<button class="btn btn-primary">Programm Ausfuehren</button>
 
-	<xml id="toolbox" style="display: none">
+<!-- 	<xml id="toolbox" style="display: none">
 	  <block type="controls_if"></block>
 	  <block type="controls_repeat_ext"></block>
 	  <block type="logic_compare"></block>
@@ -330,6 +333,13 @@
 	  <block type="math_arithmetic"></block>
 	  <block type="text"></block>
 	  <block type="text_print"></block>
+	</xml>
+ -->
+	<xml xmlns="http://www.w3.org/1999/xhtml" id="toolbox" style="display: none;">
+	  <block type="vorwaert"></block>
+	  <block type="abbiegen">
+	    <field name="abbiegen">links</field>
+	  </block>
 	</xml>
 
 	<div class="modal fade" id="situation-modal" tabindex="-1" role="dialog" aria-labelledby="situation-modalLabel" aria-hidden="true">
