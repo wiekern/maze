@@ -584,10 +584,11 @@ function MazeGame(canvas, options) {
 			// console.log(direction + ":" + rotatedAngle[direction]);
 			startAngle = startAngle + rotatedAngle[direction];
 		}
+		console.log('updateAngle:' + startAngle);
 	}
 
 	this.getAngle = function() {
-		console.log(startAngle)
+		// console.log(startAngle)
 		return startAngle;
 	};
 
@@ -635,7 +636,9 @@ function MazeGame(canvas, options) {
 					if (maze.isEnd(newPos.x, newPos.y)) {
 						options.onGameEnd(true);
 					}
+					return true;
 				} else {
+					return false;
 					console.log("meet a wall.");
 				}
 			} else {
@@ -646,7 +649,9 @@ function MazeGame(canvas, options) {
 				showSteps();
 				if (maze.isEnd(currentPos.x, currentPos.y)) {
 					options.onGameEnd(true);
-				}	
+				}
+				return true;
+
 			}
 		}
 	}

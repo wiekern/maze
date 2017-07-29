@@ -12,14 +12,15 @@
 	<script type="text/javascript" src="/static/js/tether.min.js"></script>
 	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
 	<!-- <script type="text/javascript" src="/static/js/semantic.js"></script> -->
+  	<script src="/static/js/index.js"></script>
 	<script type="text/javascript" src="/static/js/maze.js"></script>
   	<script src="/static/js/blockly/blockly_compressed.js"></script>
   	<script src="/static/js/blockly/blocks_compressed.js"></script>
   	<script src="/static/js/blockly/javascript_compressed.js"></script>
+  	<script src="/static/js/blockly/acorn_interpreter.js"></script>
   	<script src="/static/js/blockly/msg/en.js"></script>
   	<script src="/static/js/blockly/msg/de.js"></script>
   	<script src="/static/js/blockly/custom/blocks.js"></script>
-  	<script src="/static/js/index.js"></script>
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
 </head>
 <body>
@@ -115,15 +116,14 @@
 	      <field name="abbiegen">rechts</field>
 	    </block>
 	    <block type="winkel">
-	      <field name="aktuellWinkel">winkel</field>
 	      <field name="winkelNumber">90</field>
 	    </block>
 	    <block type="bisende"></block>
 	    <block type="uniaktion">
-	      <field name="nextStep">geradeaus</field>
+	      <field name="nextStep">up</field>
 	    </block>
 	    <block type="biaktion">
-	      <field name="nextStep">geradeaus</field>
+	      <field name="nextStep">up</field>
 	    </block>
 	  </category>
 	  <category name="Variables" colour="#A65C81" custom="VARIABLE"></category>

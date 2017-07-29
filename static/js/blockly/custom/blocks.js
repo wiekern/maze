@@ -34,13 +34,8 @@ var blocksJson = [{
 },
 {
   "type": "winkel",
-  "message0": "wenn %1 ist %2 %3 ausführen %4",
+  "message0": "wenn Winkel ist %1 %2 ausführen %3",
   "args0": [
-    {
-      "type": "field_variable",
-      "name": "aktuellWinkel",
-      "variable": "winkel"
-    },
     {
       "type": "field_angle",
       "name": "winkelNumber",
@@ -95,15 +90,15 @@ var blocksJson = [{
       "options": [
         [
           "geradeaus ist",
-          "geradeaus"
+          "up"
         ],
         [
           "nach links ist",
-          "links"
+          "left"
         ],
         [
           "nach rechts ist",
-          "rechts"
+          "right"
         ]
       ]
     },
@@ -131,15 +126,15 @@ var blocksJson = [{
       "options": [
         [
           "geradeaus ist",
-          "geradeaus"
+          "up"
         ],
         [
           "nach links ist",
-          "links"
+          "left"
         ],
         [
           "nach rechts ist",
-          "rechts"
+          "right"
         ]
       ]
     },
@@ -176,10 +171,10 @@ for (let i = 0; i < blocksJson.length; i++) {
 	};
 }
 
-
 Blockly.JavaScript['vorwaert'] = function(block) {
   // TODO: Assemble JavaScript into code variable.
-  var code = '$(\'#go-forward\').click();';
+  // var code = '$(\'#go-forward\').click();';
+  var code = 'moveDir("up");';
   return code;
 };
 
@@ -188,27 +183,30 @@ Blockly.JavaScript['abbiegen'] = function(block) {
   var code = '';
   // TODO: Assemble JavaScript into code variable.
   if (dropdown_abbiegen === 'links') {
-  	code = '$(\'#turn-left\').click()';
+  	// code = '$(\'#turn-left\').click()';
+  	code = 'moveDir("left");';
 
   } else if (dropdown_abbiegen === 'rechts'){
-	code = '$(\'#turn-right\').click();';
+	// code = '$(\'#turn-right\').click();';
+	code = 'moveDir("right");';
   }
   return code;
 };
 
 Blockly.JavaScript['winkel'] = function(block) {
-  var variable_aktuellwinkel = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('aktuellWinkel'), Blockly.Variables.NAME_TYPE);
   var angle_winkelnumber = block.getFieldValue('winkelNumber');
-  var statements_name = Blockly.JavaScript.statementToCode(block, 'winkelBlock');
+  var statements_winkelblock = Blockly.JavaScript.statementToCode(block, 'winkelBlock');
   // TODO: Assemble JavaScript into code variable.
-  var code = '...;\n';
+  var ifCondition = 'if (mazeGame.getAngle() ===' + angle_winkelnumber + ') {' 
+  					+ statements_winkelblock + '}';
+  var code = ifCondition;
   return code;
 };
 
 Blockly.JavaScript['bisende'] = function(block) {
   var statements_bisendeblock = Blockly.JavaScript.statementToCode(block, 'bisEndeBlock');
   // TODO: Assemble JavaScript into code variable.
-  var code = '...;\n';
+  var code = 'while(!mazeGame.foundExit()) {' + statements_bisendeblock + '}';
   return code;
 };
 
@@ -216,7 +214,8 @@ Blockly.JavaScript['uniaktion'] = function(block) {
   var dropdown_nextstep = block.getFieldValue('nextStep');
   var statements_name = Blockly.JavaScript.statementToCode(block, 'uniAktionBlock');
   // TODO: Assemble JavaScript into code variable.
-  var code = '...;\n';
+  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_nextstep + '"] === false) {' + statements_name + '}';
+  var code = ifCondition;
   return code;
 };
 
@@ -225,7 +224,9 @@ Blockly.JavaScript['biaktion'] = function(block) {
   var statements_jaaktion = Blockly.JavaScript.statementToCode(block, 'jaAktion');
   var statements_neinaktion = Blockly.JavaScript.statementToCode(block, 'neinAktion');
   // TODO: Assemble JavaScript into code variable.
-  var code = '...;\n';
+  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_nextstep + '"] === false) {' + statements_jaaktion + '}';
+  var elseCondition = 'else {' + statements_neinaktion + '}';
+  var code = ifCondition + elseCondition;
   return code;
 };
 
