@@ -36,8 +36,7 @@ function MazeGame(canvas, options) {
 	// 	"1000", "1001", "1010", "1011",
 	// 	"1100", "1101", "1110", "1111"];
 	var situations = Array(16),
-		actions = Array(16),
-		actionList = [];
+		actionsList = Array(16);
 	var offsets = {
 		left	:	{ x: -1, y: 0 },
 		up	:	{ x: 0, y:	-1 },
@@ -420,10 +419,10 @@ function MazeGame(canvas, options) {
 		return false;
 	};
 
-	this.storeAction = function(action) {
+	this.storeActions = function(actions) {
 		let i = this.getShortSituation();
 		// console.log("store action:" + i + "..." + action);
-		actions[i] = action;
+		actionsList[i] = actions;
 	}
 
 	this.setSituation = function(b) {
@@ -433,7 +432,7 @@ function MazeGame(canvas, options) {
 
 	this.removeRule = function(i) {
 		situations[i] = false;
-		actions[i] = "";
+		actionsList[i] = "";
 	};
 
 	this.isSituationExisted = function() {
@@ -446,10 +445,10 @@ function MazeGame(canvas, options) {
 		}
 	};
 
-	this.getActionOfSituation = function() {
+	this.getActionsOfSituation = function() {
 		let i = this.getShortSituation();
 		// console.log("action of situation:" + i + "##" + actions[i])
-		return actions[i];
+		return actionsList[i];
 	};
 
 	this.getShortSituation = function() {

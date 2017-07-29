@@ -19,236 +19,8 @@
   	<script src="/static/js/blockly/msg/en.js"></script>
   	<script src="/static/js/blockly/msg/de.js"></script>
   	<script src="/static/js/blockly/custom/blocks.js"></script>
+  	<script src="/static/js/index.js"></script>
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
-	<script>
-		var mazeGame;
-		var time, timer, startTime;
-		var mazeOptions = {
-			onGameEnd: function(didWin){
-				clearInterval(timer);
-				gameInProgress = false;
-				center($("#options").show());
-			},
-			onStart: function(){
-				startTime = new Date();
-				timer = setInterval(timeTick, 100);
-				showTime();
-				showSteps();
-			}
-		};
-		
-		$(document).ready(function () {
-			mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
-			
-			$("form").on('submit', function () {
-				mazeOptions.level_size = [$('#w').val(), $('#h').val()];
-				mazeOptions.levelOption = $('#level-option input:radio:checked').val();
-				mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
-				$('#options, #end-game').hide();
-				return false;
-			});
-			$('body').on('keypress', '#h, #options', function (e) {
-				return (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) ? false : true;
-			})
-			$(window).on('click', function(e){
-				if (!$(e.target).is("#options") && $(e.target).parents('#options').length == 0)
-					$('#options').hide();
-			});
-			// $('a[href=#options]').on('click', function(){
-			$('a[href*=\\#options]').on('click', function(){
-				center($('#options').show());
-				return false;
-			});
-
-			$('#rule-list').delegate('a', 'click', function() {
-				mazeGame.removeRule($(this).attr('name'));
-				$(this).parent().remove();
-			});
-
-			$('#action-list').delegate('a', 'click', function() {
-				mazeGame.removeRule($(this).attr('name'));
-				$(this).parent().remove();
-			});
-
-			$('#go-forward').on('click', function(){
-				$('#situation-modal').modal('hide');
-
-				let forwardDir = mazeGame.getForwardDir("up");
-				if (!mazeGame.isMetWall(forwardDir)) {
-					mazeGame.setSituation(true);
-					mazeGame.storeAction("up");
-
-					let situation = mazeGame.getLongSituation();
-					$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
-
-					showCurrentStatus(forwardDir);
-					mazeGame.move(forwardDir);
-				} else {
-					return;
-				}
-				
-				while (mazeGame.isSituationExisted()) {
-					if (mazeGame.foundExit()) {
-						$('#situation-modal').modal('hide');
-						return;
-					}
-					if (mazeGame.turnCircle()) {
-						break;
-					} 
-					if (mazeGame.curPosInCrossPos()) {
-						break;
-					}
-
-					let forwardDir = mazeGame.getForwardDir(mazeGame.getActionOfSituation());
-					if (!mazeGame.isMetWall(forwardDir)) {
-						showCurrentStatus(forwardDir);
-						mazeGame.move(forwardDir);
-					} else {
-						break;
-					}
-				} 
-
-				if (!mazeGame.foundExit()) {
-					console.log('not end');
-					$('#situation-modal').one('hidden.bs.modal', function (e) {
-						showSituation();
-					});
-				} else {
-					console.log('end');
-					$('#situation-modal').modal('hide');
-				}
-			});
-			$('#turn-left').on('click', function(){
-				$('#situation-modal').modal('hide');
-
-				mazeGame.setSituation(true);
-				mazeGame.storeAction("left");
-
-				let situation = mazeGame.getLongSituation();
-				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + ','+ situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
-
-				let forwardDir = mazeGame.getForwardDir("left");
-				showCurrentStatus(forwardDir);
-				mazeGame.move(forwardDir);
-				mazeGame.turnCircle();
-
-				$('#situation-modal').one('hidden.bs.modal', function (e) {
-					showSituation();
-				});
-			});
-			$('#turn-right').on('click', function() {
-				$('#situation-modal').modal('hide');
-
-				mazeGame.setSituation(true);
-				mazeGame.storeAction("right");
-
-				let situation = mazeGame.getLongSituation();
-				$('#rule-list').append('<li class="list-group-item">' + situation.up + ',' + ','+ situation.left + ',' + situation.right + ' | ' + mazeGame.getActionOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a>' + ' </li>');
-
-				let forwardDir = mazeGame.getForwardDir("right");
-				showCurrentStatus(forwardDir);
-				mazeGame.move(forwardDir);
-				mazeGame.turnCircle();
-				
-				$('#situation-modal').one('hidden.bs.modal', function (e) {
-					showSituation();
-				});
-			});
-
-			showSituation();
-		});
-		
-		$(window).on('keydown', function (e) {
-			var keyCode = e.keyCode || e.which,
-				keyCodes = {
-					37: "left",
-					38: "up",
-					39: "right",
-					40: "down",
-					65: "left",
-					87: "up",
-					68: "right",
-					83: "down"
-				};
-			if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
-				// send arrow keys and wsad to game
-				mazeGame.move(keyCodes[keyCode]);
-				if (mazeGame.foundExit()) {
-					$('#situation-modal').modal('show');
-				} else {
-					showSituation();
-				}
-				return false;
-			} else if (keyCode === 27) {
-				// close options on escape
-				$('#options').hide();
-				return false;
-			}
-		});
-
-		function showCurrentStatus(forwardDir) {
-			let status = mazeGame.getCurrentStatus();
-			$('#action-list').append('<li class="list-group-item">' + 'faceTo:' + 
-				status.faceTo + ', Spalte:' + status.x + ', Zeile:' + status.y + ' | '
-				+ forwardDir + '</li>');
-			// $('#action-list').append('<li class="list-group-item">' + 'faceTo:' + 
-			// 	status.faceTo + ', Spalte:' + status.x + ', Zeile:' + status.y + ' | '
-			// 	+ forwardDir + '<a class="badge" name="' + '000' + '">' + '&times;</a>' + ' </li>');
-		}
-
-		function showSituation() {
-			if (mazeGame != undefined) {
-
-				let situation = mazeGame.getSituation();
-
-				if (situation["up"] === false) {
-					$('#myup').removeClass().addClass("btn btn-success btn-transparent disabled");
-					$('#myup').text("Vorne Frei");
-				} else {
-					$('#myup').removeClass().addClass("btn btn-default disabled btn-transparent");
-					$('#myup').text("Vorne Belegt");
-				}
-				if (situation["left"] === false) {
-					$('#myleft').removeClass().addClass("btn btn-success btn-transparent disabled");
-					$('#myleft').text("Links Frei");
-				} else {
-					$('#myleft').removeClass().addClass("btn btn-default disabled btn-transparent");
-					$('#myleft').text("Links Belegt");
-				}
-				if (situation["right"] === false) {
-					$('#myright').removeClass().addClass("btn btn-success btn-transparent disabled");
-					$('#myright').text("Rechts Frei");
-				} else {
-					$('#myright').removeClass().addClass("btn btn-default disabled btn-transparent");
-					$('#myright').text("Rechts Belegt");
-				}
-
-				$('#rotatedAngle').text(mazeGame.getAngle() + " Grad");
-
-				$('#situation-modal').modal('show');
-			}
-		}
-
-		function center(e) {
-			e.css('top', $("#maze").offset().top + $("#maze").height() / 2 - e.outerHeight() / 2);
-		}
-		
-		function showTime() {
-			deltaTime = Math.floor(((new Date).getTime() - startTime.getTime()) / 1000);
-			$("#time").html(deltaTime + " second" + (deltaTime !== 1 ? "s" : ""));
-		}
-		
-		function showSteps() {
-			var steps = 0
-			if (mazeGame != undefined)
-				steps = mazeGame.getSteps()
-			$("#steps").html(steps + " step" + (steps !== 1 ? "s" : ""));
-		}
-		
-		function timeTick() {
-			showTime();
-		}
-	</script>
 </head>
 <body>
 	<div class="main-content">
@@ -291,7 +63,6 @@
 							
 						</div>
 					</div>
-					
 					<button type="submit" class="btn btn-primary">Generate Maze</button>
 				</form>
 			</div>
@@ -301,8 +72,6 @@
 		<div class="right-content">
 			<div class="panel panel-default">
 				<div class="panel-heading">Regeln
-					
-					</button>
 				</div>
   				<div class="panel-body">
 	  				<button id="new-rule" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#situation-modal">Neue Regel</button>
@@ -323,7 +92,7 @@
 	</div>
 	
 	<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
-	<button class="btn btn-primary">Programm Ausfuehren</button>
+	<button id="runCode" class="btn btn-primary">Programm Ausfuehren</button>
 
 <!-- 	<xml id="toolbox" style="display: none">
 	  <block type="controls_if"></block>
@@ -336,10 +105,28 @@
 	</xml>
  -->
 	<xml xmlns="http://www.w3.org/1999/xhtml" id="toolbox" style="display: none;">
-	  <block type="vorwaert"></block>
-	  <block type="abbiegen">
-	    <field name="abbiegen">links</field>
-	  </block>
+	  <category name="vordefinierte Blöcke"></category>
+	  <category name="eigene Blöcke">
+	    <block type="vorwaert"></block>
+	    <block type="abbiegen">
+	      <field name="abbiegen">links</field>
+	    </block>
+	    <block type="abbiegen">
+	      <field name="abbiegen">rechts</field>
+	    </block>
+	    <block type="winkel">
+	      <field name="aktuellWinkel">winkel</field>
+	      <field name="winkelNumber">90</field>
+	    </block>
+	    <block type="bisende"></block>
+	    <block type="uniaktion">
+	      <field name="nextStep">geradeaus</field>
+	    </block>
+	    <block type="biaktion">
+	      <field name="nextStep">geradeaus</field>
+	    </block>
+	  </category>
+	  <category name="Variables" colour="#A65C81" custom="VARIABLE"></category>
 	</xml>
 
 	<div class="modal fade" id="situation-modal" tabindex="-1" role="dialog" aria-labelledby="situation-modalLabel" aria-hidden="true">
@@ -387,16 +174,20 @@
 	        	</div>
 	        </div>
 	      </div>
+
+	      <div class="input-group">
+		      <input id="actions" type="text" class="form-control">
+		      <span class="input-group-btn">
+		        <button id="executeAction" class="btn btn-default" type="button">Go!</button>
+		      </span>
+		   </div>
+		  
 	      <div class="modal-footer">
-	        <button  id="close-modal" type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
+	        <button id="close-modal" type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
 	      </div>
 	    </div>
 	  </div>
 	</div>
 
-	<script>
-	  var workspace = Blockly.inject('blocklyDiv',
-	      {toolbox: document.getElementById('toolbox')});
-	</script>
 </body>
 </html>
