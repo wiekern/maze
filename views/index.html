@@ -5,13 +5,11 @@
 	<meta charset="utf-8" />
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/static/css/maze.css" />
-	<!-- <link rel="stylesheet" href="/static/css/semantic.css" /> -->
-	<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> -->
-	<!-- <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script> -->
+	<link rel="stylesheet" href="/static/css/yamm.css" />
+	<!-- <link rel="stylesheet" href="/static/css/bootflat.css" /> -->
 	<script type="text/javascript" src="/static/js/jquery.js"></script>
 	<script type="text/javascript" src="/static/js/tether.min.js"></script>
 	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
-	<!-- <script type="text/javascript" src="/static/js/semantic.js"></script> -->
   	<script src="/static/js/index.js"></script>
 	<script type="text/javascript" src="/static/js/maze.js"></script>
   	<script src="/static/js/blockly/blockly_compressed.js"></script>
@@ -24,87 +22,118 @@
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1" />
 </head>
 <body>
-	<div class="main-content">
-		<div class="left-content">
-			<div id="a">
-				<h1>Maze<span> <a href="#options">options</a></span></h1>
-				<!-- <div id="time"></div><div id="steps"></div> -->
-			</div>
-			<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
-			<!-- <div id="time"></div><div id="steps"></div> -->
-			<div id="options">
-				<form class="form-horizontal">
-					<div class="form-group">
-						<label for="w" class="sr-only">Width</label>
-						<label for="h" class="sr-only">Height</label>
-						<input id="w" type="number" min="2" step="1" value="10" />
-						by
-						<input id="h" type="number" min="2" step="1" value="10" />
-					</div>
-					<div id="level-option" class="form-group">
-						<div class="radio">
-							<label>
-								<input id="level1" type="radio" name="levelOptions" value="one" checked/>
-								1 Inseln
-							</label>
-							
-						</div>
-						<div class="radio">
-							<label>
-								<input id="level2" type="radio" name="levelOptions" value="without" />
-								ohne Inseln
-							</label>
-							
-						</div>
-						<div class="radio">
-							<label>
-								<input id="level3" type="radio" name="levelOptions" value="random" />
-								zufaellig
-							</label>
-							
-						</div>
-					</div>
-					<button type="submit" class="btn btn-primary">Generate Maze</button>
-				</form>
-			</div>
+	<nav class="navbar navbar-default" role="navigation">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand" href="#">
+	        <!-- <div id="a"> -->
+			Maze
+			<!-- </div> -->
+	      </a>
+	    </div>
+	    <ul class="nav yamm navbar-nav">
+	    	<li><a href="#options">Optionen</a></li>
+	    	<li><a id="new-rule" type="button" role="button">Neue Regel</a></li>
+	    	<li class="dropdown yamm-fullwidth">
+			  <a class="dropdown-toggle" type="button" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Regeln<span class="caret"></span></a>
+			  <ul class="dropdown-menu">
+			  	<li>
+			  		<div class="yamm-content">
+			  			<table class="table table-hover">
+				  			<thead>
+						      <tr>
+						        <th>Vorne</th>
+						        <th>Links</th>
+						        <th>Rechts</th>
+						        <th>Bewegunen</th>
+						      </tr>
+						    </thead>
+						    <tbody id="rule-list">
+						    </tbody>
+			  			</table>
+			  			
+			  		</div>
+			  	</li>
+			    
+			  </ul>
+	    	</li>
+	    	<li class="dropdown yamm-fullwidth">
+			  <a class="dropdown-toggle" type="button" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Aktionen<span class="caret"></span></a>
+			  <ul class="dropdown-menu">
+			  	<li>
+			  		<div class="yamm-content">
+			  			<table class="table table-hover">
+				  			<thead>
+						      <tr>
+						        <th>Sehen</th>
+						        <th>Spalte</th>
+						        <th>Zeile</th>
+						        <th>Aktion</th>
+						      </tr>
+						    </thead>
+						    <tbody id="action-list">
+						    </tbody>
+			  			</table>
+			  			
+			  		</div>
+			  	</li>
+			    
+			  </ul>
+	    	</li>
+	    </ul>
 
-		</div>
-		
-		<div class="right-content">
-			<div class="panel panel-default">
-				<div class="panel-heading">Regeln
+	  </div>
+	</nav>
+
+	<canvas id="maze">Sorry your browser doesn't support the canvas element. Try upgrading your browser.</canvas>
+	<!-- <div id="time"></div><div id="steps"></div> -->
+	<div id="options">
+		<form class="form-horizontal">
+			<div class="form-group">
+				<label for="w" class="sr-only">Width</label>
+				<label for="h" class="sr-only">Height</label>
+				<input id="w" type="number" min="2" step="1" value="10" />
+				by
+				<input id="h" type="number" min="2" step="1" value="10" />
+			</div>
+			<div id="level-option" class="form-group">
+				<div class="radio">
+					<label>
+						<input id="level1" type="radio" name="levelOptions" value="one" checked/>
+						1 Inseln
+					</label>
+					
 				</div>
-  				<div class="panel-body">
-	  				<button id="new-rule" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#situation-modal">Neue Regel</button>
-		    		<ul id="rule-list">
-		    		</ul>
-		  		</div>
+				<div class="radio">
+					<label>
+						<input id="level2" type="radio" name="levelOptions" value="without" />
+						ohne Inseln
+					</label>
+					
+				</div>
+				<div class="radio">
+					<label>
+						<input id="level3" type="radio" name="levelOptions" value="random" />
+						zufaellig
+					</label>
+					
+				</div>
 			</div>
-			<div class="panel panel-default">
-				<div class="panel-heading">Aktionen</div>
-  				<div class="panel-body">
-		    		<ul id="action-list">
-		    		</ul>
-		  		</div>
-			</div>
-		</div>
-		<br class="clear" />
+			<button type="submit" class="btn btn-primary">Generieren Maze</button>
+		</form>
+	</div>
 
+<!-- 	<div id="time"></div>
+	<div id="steps"></div> -->
+
+	<div class="container-fluid">
+		<div class="row"> 
+			<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
+			<button id="runCode" class="btn btn-default">Programm Ausführen</button>		
+		</div>
 	</div>
 	
-	<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
-	<button id="runCode" class="btn btn-primary">Programm Ausfuehren</button>
 
-<!-- 	<xml id="toolbox" style="display: none">
-	  <block type="controls_if"></block>
-	  <block type="controls_repeat_ext"></block>
-	  <block type="logic_compare"></block>
-	  <block type="math_number"></block>
-	  <block type="math_arithmetic"></block>
-	  <block type="text"></block>
-	  <block type="text_print"></block>
-	</xml>
- -->
 	<xml xmlns="http://www.w3.org/1999/xhtml" id="toolbox" style="display: none;">
 	  <category name="vordefinierte Blöcke"></category>
 	  <category name="eigene Blöcke">
@@ -133,7 +162,7 @@
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
 	      <div class="modal-header">
-	        <h4 class="modal-title" id="situation-modalLabel">Aktueller Zustand</h5>
+	        <h4 class="modal-title" id="situation-modalLabel">Aktueller Zustand und Regeln </h5>
 	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
 	        </button>
@@ -172,16 +201,16 @@
 						<a id="turn-right" class="btn btn-success btn-transparent" style="width:120px">Rechts drehnen</a>
 	        		</div>
 	        	</div>
+	        	<div class="row">
+	        		<div class="input-group">
+				      <input id="actions" type="text" class="form-control" placeholder="Klicken um die Aktionen einzugeben">
+				      <span class="input-group-btn">
+				        <button id="executeAction" class="btn btn-default" type="button">Los!</button>
+				      </span>
+				   </div>
+	        	</div>
 	        </div>
-	      </div>
-
-	      <div class="input-group">
-		      <input id="actions" type="text" class="form-control">
-		      <span class="input-group-btn">
-		        <button id="executeAction" class="btn btn-default" type="button">Go!</button>
-		      </span>
-		   </div>
-		  
+	      </div>		  
 	      <div class="modal-footer">
 	        <button id="close-modal" type="button" class="btn btn-primary btn-transparent" data-dismiss="modal">Close</button>
 	      </div>

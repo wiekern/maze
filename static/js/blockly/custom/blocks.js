@@ -158,7 +158,7 @@ var blocksJson = [{
 }];
 
 for (let i = 0; i < blocksJson.length; i++) {
-	console.log(blocksJson[i].type);
+	// console.log(blocksJson[i].type);
 	Blockly.Blocks[blocksJson[i].type] = {
 		init: function() {
 	    this.jsonInit(blocksJson[i]);

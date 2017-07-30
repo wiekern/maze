@@ -339,8 +339,8 @@ function MazeGame(canvas, options) {
 		// canvas.height = $('body').height();
 		// options.offset.x = Math.floor((canvas.width / 2) - (maze.width * options.scale / 2));
 		// options.offset.y = Math.floor((canvas.height / 2) - (maze.height * options.scale / 2));
-		$("#a").width(maze.width * options.scale + 3).css('padding-top', (canvas.height / 2) - (maze.height * options.scale / 2) - $('h1').height());
-		$("#time, #steps").css('margin-top', maze.height * options.scale);
+		// $("#a").width(maze.width * options.scale + 3).css('padding-top', (canvas.height / 2) - (maze.height * options.scale / 2) - $('h1').height());
+		// $("#time, #steps").css('margin-top', maze.height * options.scale);
 		draw();
 	}
 	
@@ -479,10 +479,10 @@ function MazeGame(canvas, options) {
 			faceTo = faceTos[currentPos.dir];
 
 		return {
-			up: cell[faceTo["up"]] === true? "Vorne B":"Vorne F",
+			up: cell[faceTo["up"]] === true? "Belgt":"Frei",
 			// "down": cell[faceTo["down"]] === true? "Hinten belegt":"Hinten frei",
-			left: cell[faceTo["left"]] === true? "Links B":"Links F",
-			right: cell[faceTo["right"]] === true? "Rechts B":"Rechts F"
+			left: cell[faceTo["left"]] === true? "Belegt":"Frei",
+			right: cell[faceTo["right"]] === true? "Belegt":"Frei"
 		};
 	};
 
@@ -578,13 +578,17 @@ function MazeGame(canvas, options) {
 		right	: -90,
 		up	: 0
 	};
-	
+
+	function resetAngle() {
+		startAngle = 0;
+	}
+
 	function updateAngle(direction) {
 		if (direction === "left" || direction === "right") {
 			// console.log(direction + ":" + rotatedAngle[direction]);
 			startAngle = startAngle + rotatedAngle[direction];
 		}
-		console.log('updateAngle:' + startAngle);
+		// console.log('updateAngle:' + startAngle);
 	}
 
 	this.getAngle = function() {
@@ -592,13 +596,13 @@ function MazeGame(canvas, options) {
 		return startAngle;
 	};
 
-	function resetAngle() {
+	this.resetAngle = function () {
 		startAngle = 0;
-	}
+	};
 
 	this.turnCircle = function() {
+
 		if (this.getAngle() === 360 || this.getAngle() === -360) {
-			resetAngle();
 			return true;
 		} else {
 			return false;

@@ -21,7 +21,7 @@ a, a:visited {
 	text-decoration: none;
 }
 
-h1 {
+/*h1 {
 	margin-top:-.2em;
 	text-indent: 2px;
 }
@@ -30,9 +30,9 @@ h1 {
 		font-size:.55em;
 		font-weight:400;
 		color:#666;
-	}
+	}*/
 
-#time,#steps {
+/*#time,#steps {
 	font-family:Georgia;
 	font-size:20px;
 	float:left;
@@ -42,12 +42,12 @@ h1 {
 #steps {
 	float:right;
 	text-align:right;
-}
+}*/
 
-#a {
+/*#a {*/
 	/*position:relative;*/
-	margin: 0 auto;
-}
+	/*margin: 0 auto;*/
+/*}*/
 
 #options {
 	display:none;
@@ -137,26 +137,6 @@ fieldset {
 .btn-transparent {
 	background-color: transparent;
 }
-.main-content {
-	width: 100%;
-}
-
-.left-content {
-	float: left;
-	width: 60%;
-	display: inline;
-}
-
-.right-content {
-	padding-top: 42px;
-	float: left;
-	width: 40%;
-	display: inline;
-}
-
-.right-content .panel {
-	display: inline-block;
-}
 
 ul {
 	padding-left: 0;
@@ -178,8 +158,10 @@ ul {
 
 #blocklyDiv {
 	margin-top: 40px;
+	display: inline-block;
 }
 
-.clear {
-	clear: both;
+#executeAction, #actions {
+	background-color: rgba(0,0,0,0.1);
 }
+
