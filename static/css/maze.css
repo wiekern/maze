@@ -156,10 +156,9 @@ ul {
     overflow-y:scroll; 
 }
 
-#blocklyDiv {
-	margin-top: 40px;
-	display: inline-block;
-}
+/*#blocklyDiv {
+	tab-index: -1;
+}*/
 
 #executeAction, #actions {
 	background-color: rgba(0,0,0,0.1);

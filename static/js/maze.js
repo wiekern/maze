@@ -11,7 +11,9 @@ function MazeGame(canvas, options) {
 		offset: {x: 0, y: 0},
 		scale: 54,
 		user_diameter: 4,
-		user_path_width: 8,
+		wall_width: 2,
+		user_path_width: 4,
+		screen_width: 960,
 		onStart: function(){},
 		onGameEnd: function(){},
 		onMove: function(){}
@@ -22,7 +24,7 @@ function MazeGame(canvas, options) {
 
 	$(window).on('resize', center);
 	
-	var ctx, oldPos, currentPos, startAngle = 0, maze, path, gameInProgress, visitedCrossPostions;
+	var ctx, oldPos = options.starting_position, currentPos = options.starting_position, startAngle = 0, maze, path, gameInProgress, visitedCrossPostions;
 	var faceTos = {
 		up: {up:"up", down: "down", left:"left", right:"right"}, //north
 		down: {up:"down", down: "up", left:"right", right:"left"},//south
@@ -50,7 +52,7 @@ function MazeGame(canvas, options) {
 	// 49px width/man
 	var manWidth = 49, manHeight = 51;
 	var manDirections = {
-		up	: 	{x: 0, y: 0},
+		up		: 	{x: 0, y: 0},
 		right	: 	{x: 4 * manWidth, y: 0},
 		down	: 	{x: 8 * manWidth, y: 0},
 		left 	: 	{x: 12 * manWidth, y: 0}
@@ -305,7 +307,12 @@ function MazeGame(canvas, options) {
 	}
 	
 	function setup(height, width) {
+		//convert string number to arithmetic number
+		width = parseInt(width);
+		height = parseInt(height);
 		maze = new Maze(height, width);
+		var screenWidth = $(window).width();
+		options.scale = Math.floor((screenWidth * 0.5 - (options.wall_width * (width + 1))) / width);
 		currentPos = options.starting_position;
 		path = [];
 		path.push(currentPos);
@@ -329,7 +336,7 @@ function MazeGame(canvas, options) {
 		}
 		// record position
 		oldPos = currentPos;
-		console.log('setup:' + oldPos.dir);
+		console.log('setup:' + oldPos.dir + ' ' + oldPos.x);
 	}
 
 	function center() {
@@ -602,7 +609,7 @@ function MazeGame(canvas, options) {
 
 	this.turnCircle = function() {
 
-		if (this.getAngle() === 360 || this.getAngle() === -360) {
+		if (this.getAngle() % 360 === 0 && this.getAngle() !== 0) {
 			return true;
 		} else {
 			return false;
@@ -655,7 +662,6 @@ function MazeGame(canvas, options) {
 					options.onGameEnd(true);
 				}
 				return true;
-
 			}
 		}
 	}
@@ -676,7 +682,8 @@ function MazeGame(canvas, options) {
 
 	function manMoves() {
 		//line width: 2
-		ctx.clearRect(sx + 3, sy + 3, 49, 51);
+		// ctx.clearRect(sx + 3, sy + 3, 49, 51);
+		ctx.clearRect(sx + 3, sy + 3, options.scale - 3 , options.scale - 3);
 		// console.log("manMoves" + sx + ":" + dx + "," + sy + ":" + dy);
 
 		// draw path
@@ -691,7 +698,10 @@ function MazeGame(canvas, options) {
 		ctx.stroke();
 
 		// draw man
-		ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, 49, 51);
+		// ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, 49, 51);
+		// console.log('draw image' + dx + ' ' + dy);
+		ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, options.scale, options.scale);
+
 
 		if (dx - sx > 0) {
 			sx = sx + 1;
@@ -705,7 +715,9 @@ function MazeGame(canvas, options) {
 			sy = sy - 1;
 		}
 
-		if (sx !== dx || sy !== dy) requestAnimationFrame(manMoves);
+		if (sx !== dx || sy !== dy) {
+			requestAnimationFrame(manMoves);
+		}
 	}
 
 	// sx: source x, sy: source y; dx: destination x, dy: destination y
@@ -717,7 +729,7 @@ function MazeGame(canvas, options) {
 		img.onload = function () {
 			var dir = "right";
 
-			if (currentPos.dir === "up") {
+			if (currentPos.dir == "up") {
 				dir = "up";
 			} else if (currentPos.dir == "right") {
 				dir = "right";
@@ -762,7 +774,7 @@ function MazeGame(canvas, options) {
 	function line(x1, y1, x2, y2) {
 		ctx.beginPath();
 		ctx.strokeStyle = options.colors.walls;
-		ctx.lineWidth = 2;
+		ctx.lineWidth = options.wall_width;
 		ctx.moveTo(options.offset.x + x1 + 1, options.offset.y + y1 + 1);
 		ctx.lineTo(options.offset.x + x2 + 1, options.offset.y + y2 + 1);
 		ctx.stroke();
