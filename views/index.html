@@ -36,6 +36,7 @@
 	    	<li><a href="#options">Optionen</a></li>
 	    	<li><a id="new-rule" type="button" role="button">Neue Regel</a></li>
 	    	<li><a id="pledge-algo" type="button" role="button">Pledge Algo</a></li>
+	    	<li><a id="tremaux-algo" type="button" role="button">Trémaux's Algo</a></li>
 <!-- 	    	<li class="dropdown yamm-fullwidth">
 			  <a class="dropdown-toggle" type="button" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Regeln<span class="caret"></span></a>
 			  <ul class="dropdown-menu">
@@ -141,64 +142,123 @@
 				<div id="mode-rule">
 					<div class="row">
 						<div class="col-md-6">
-						<table class="table table-hover">
-				  			<thead>
-						      <tr>
-						        <th>Vorne</th>
-						        <th>Links</th>
-						        <th>Rechts</th>
-						        <th>Bewegunen</th>
-						      </tr>
-						    </thead>
-						    <tbody id="rule-list">
-						    </tbody>
-			  			</table>
+							<table class="table table-hover">
+					  			<thead>
+							      <tr>
+							        <th>Vorne</th>
+							        <th>Links</th>
+							        <th>Rechts</th>
+							        <th>Bewegungen</th>
+							      </tr>
+							    </thead>
+							    <tbody id="rule-list">
+							    </tbody>
+				  			</table>
 			  			</div>
 			  			<div class="col-md-6">
-			  			<table class="table table-hover col-md-6">
-			  				 <thead>
-						      <tr>
-						        <th>Sehen</th>
-						        <th>Spalte</th>
-						        <th>Zeile</th>
-						        <th>Aktion</th>
-						      </tr>
-						    </thead>
-						    <tbody id="action-list">
-						    </tbody>
-			  			</table>
+				  			<table class="table table-hover col-md-6">
+				  				 <thead>
+							      <tr>
+							        <th>Sehen</th>
+							        <th>Spalte</th>
+							        <th>Zeile</th>
+							        <th>Aktion</th>
+							      </tr>
+							    </thead>
+							    <tbody id="action-list">
+							    </tbody>
+				  			</table>
 			  			</div>
 					</div>
-					
 				</div>
 			</div>
-			
+		</div>	
 	</div>
 
 	<xml xmlns="http://www.w3.org/1999/xhtml" id="toolbox" style="display: none;">
 	  <category name="vordefinierte Blöcke"></category>
 	  <category name="eigene Blöcke">
-	    <block type="vorwaert"></block>
-	    <block type="abbiegen">
-	      <field name="abbiegen">links</field>
-	    </block>
-	    <block type="abbiegen">
-	      <field name="abbiegen">rechts</field>
-	    </block>
-	    <block type="winkel">
-	      <field name="winkelNumber">90</field>
-	    </block>
-	    <block type="bisende"></block>
-	    <block type="uniaktion">
-	      <field name="nextStep">up</field>
-	    </block>
-	    <block type="biaktion">
-	      <field name="nextStep">up</field>
-	    </block>
+	      <block type="tillend"></block>
+		  <block type="if">
+		    <value name="ifBranch">
+		      <block type="anglecompare">
+		        <field name="compare">less</field>
+		        <value name="angle">
+		          <block type="angle">
+		            <field name="angleValue">0</field>
+		          </block>
+		        </value>
+		      </block>
+		    </value>
+		  </block>
+		  <block type="ahead"></block>
+		  <block type="turn">
+		    <field name="turnTo">left</field>
+		  </block>
+		  <block type="bipath">
+		    <field name="pathFree">up</field>
+		  </block>
+		  <block type="unipath">
+		    <field name="pathFree">up</field>
+		  </block>
 	  </category>
 	  <category name="Variables" colour="#A65C81" custom="VARIABLE"></category>
 	</xml>
 
+	<!-- test solution -->
+	<xml xmlns="http://www.w3.org/1999/xhtml" id="workspaceBlocks" style="display:none">
+	  <variables></variables>
+	  <block type="tillend" id="pDpk]ZE.$+aNpogILOcn" x="12" y="-13">
+	    <statement name="tillEndStatement">
+	      <block type="bipath" id="n5?E**1$L_w0a|bm1BkY">
+	        <field name="pathFree">right</field>
+	        <statement name="ifStatement">
+	          <block type="turn" id="nPiP@fzot?9rqT83mJ6}">
+	            <field name="turnTo">right</field>
+	            <next>
+	              <block type="ahead" id="IDzyt1~9*;{C:GQs7j.K"></block>
+	            </next>
+	          </block>
+	        </statement>
+	        <statement name="elseStatement">
+	          <block type="bipath" id="nIt%;0DpiJD^CaG#YUw~">
+	            <field name="pathFree">up</field>
+	            <statement name="ifStatement">
+	              <block type="ahead" id="+h]V{WRq:,/Gu^i$nfM-"></block>
+	            </statement>
+	            <statement name="elseStatement">
+	              <block type="bipath" id="rfxsSudr{}}_|Fkbs;~4">
+	                <field name="pathFree">left</field>
+	                <statement name="ifStatement">
+	                  <block type="turn" id="9)0(A-,Kq~!T,CC+19w.">
+	                    <field name="turnTo">left</field>
+	                    <next>
+	                      <block type="ahead" id="`ldY)F)d8%6VPI~t9lZI"></block>
+	                    </next>
+	                  </block>
+	                </statement>
+	                <statement name="elseStatement">
+	                  <block type="turn" id="HtS_c(hM+[#E=D#PV,+,">
+	                    <field name="turnTo">left</field>
+	                    <next>
+	                      <block type="turn" id="/,}[nw)5YC:7y];Ap8Q]">
+	                        <field name="turnTo">left</field>
+	                        <next>
+	                          <block type="ahead" id="?Uok@svsY*Z}[1A-e5,F"></block>
+	                        </next>
+	                      </block>
+	                    </next>
+	                  </block>
+	                </statement>
+	              </block>
+	            </statement>
+	          </block>
+	        </statement>
+	      </block>
+	    </statement>
+	  </block>
+	</xml>
+	
 	<div class="modal fade" id="situation-modal" tabindex="-1" role="dialog" aria-labelledby="situation-modalLabel" aria-hidden="true">
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">

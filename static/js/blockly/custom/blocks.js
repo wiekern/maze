@@ -1,5 +1,5 @@
 var blocksJson = [{
-  "type": "vorwaert",
+  "type": "ahead",
   "message0": "vorwärts laufen",
   "previousStatement": null,
   "nextStatement": null,
@@ -8,57 +8,8 @@ var blocksJson = [{
   "helpUrl": ""
 },
 {
-  "type": "abbiegen",
-  "message0": "%1",
-  "args0": [
-    {
-      "type": "field_dropdown",
-      "name": "abbiegen",
-      "options": [
-        [
-          "links abbiegen",
-          "links"
-        ],
-        [
-          "rechts abbiegen",
-          "rechts"
-        ]
-      ]
-    }
-  ],
-  "previousStatement": null,
-  "nextStatement": null,
-  "colour": 230,
-  "tooltip": "",
-  "helpUrl": ""
-},
-{
-  "type": "winkel",
-  "message0": "wenn Winkel ist %1 %2 ausführen %3",
-  "args0": [
-    {
-      "type": "field_angle",
-      "name": "winkelNumber",
-      "angle": 90
-    },
-    {
-      "type": "input_dummy"
-    },
-    {
-      "type": "input_statement",
-      "name": "winkelBlock"
-    }
-  ],
-  "inputsInline": false,
-  "previousStatement": null,
-  "nextStatement": null,
-  "colour": 230,
-  "tooltip": "",
-  "helpUrl": ""
-},
-{
-  "type": "bisende",
-  "message0": "widerholen bis %1 %2 ausführen %3",
+  "type": "tillend",
+  "message0": "wiederholen bis %1 %2 ausführen %3",
   "args0": [
     {
       "type": "field_image",
@@ -72,7 +23,7 @@ var blocksJson = [{
     },
     {
       "type": "input_statement",
-      "name": "bisEndeBlock"
+      "name": "tillEndStatement"
     }
   ],
   "previousStatement": null,
@@ -81,33 +32,22 @@ var blocksJson = [{
   "helpUrl": ""
 },
 {
-  "type": "uniaktion",
-  "message0": "wenn Pfad %1 %2 ausführen %3",
+  "type": "turn",
+  "message0": "%1",
   "args0": [
     {
       "type": "field_dropdown",
-      "name": "nextStep",
+      "name": "turnTo",
       "options": [
         [
-          "geradeaus ist",
-          "up"
-        ],
-        [
-          "nach links ist",
+          "links drehen",
           "left"
         ],
         [
-          "nach rechts ist",
+          "rechts drehen",
           "right"
         ]
       ]
-    },
-    {
-      "type": "input_dummy"
-    },
-    {
-      "type": "input_statement",
-      "name": "uniAktionBlock"
     }
   ],
   "previousStatement": null,
@@ -117,23 +57,23 @@ var blocksJson = [{
   "helpUrl": ""
 },
 {
-  "type": "biaktion",
-  "message0": "wenn Pfad %1 %2 ausführen %3 sonst %4",
+  "type": "unipath",
+  "message0": "wenn Pfad %1 %2 ausführen %3",
   "args0": [
     {
       "type": "field_dropdown",
-      "name": "nextStep",
+      "name": "pathFree",
       "options": [
         [
-          "geradeaus ist",
+          "geradeaus frei ist",
           "up"
         ],
         [
-          "nach links ist",
+          "nach links frei ist",
           "left"
         ],
         [
-          "nach rechts ist",
+          "nach rechts frei ist",
           "right"
         ]
       ]
@@ -143,13 +83,126 @@ var blocksJson = [{
     },
     {
       "type": "input_statement",
-      "name": "jaAktion"
+      "name": "uniPathStatement"
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 230,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "bipath",
+  "message0": "wenn Pfad %1 %2 ausführen %3 sonst %4",
+  "args0": [
+    {
+      "type": "field_dropdown",
+      "name": "pathFree",
+      "options": [
+        [
+          "geradeaus frei ist",
+          "up"
+        ],
+        [
+          "nach links frei ist",
+          "left"
+        ],
+        [
+          "nach rechts frei ist",
+          "right"
+        ]
+      ]
+    },
+    {
+      "type": "input_dummy"
     },
     {
       "type": "input_statement",
-      "name": "neinAktion"
+      "name": "ifStatement"
+    },
+    {
+      "type": "input_statement",
+      "name": "elseStatement"
     }
   ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 230,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "anglecompare",
+  "message0": "Winkel %1 %2 %3",
+  "args0": [
+    {
+      "type": "field_dropdown",
+      "name": "compare",
+      "options": [
+        [
+          "<",
+          "less"
+        ],
+        [
+          "=",
+          "equal"
+        ],
+        [
+          ">",
+          "more"
+        ],
+        [
+          "!=",
+          "unequal"
+        ]
+      ]
+    },
+    {
+      "type": "input_dummy"
+    },
+    {
+      "type": "input_value",
+      "name": "angle",
+      "check": "Number"
+    }
+  ],
+  "inputsInline": true,
+  "output": null,
+  "colour": 210,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "angle",
+  "message0": "%1",
+  "args0": [
+    {
+      "type": "field_number",
+      "name": "angleValue",
+      "value": 0,
+      "precision": 1
+    }
+  ],
+  "output": null,
+  "colour": 195,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "if",
+  "message0": "wenn %1 ausführen %2",
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "ifBranch"
+    },
+    {
+      "type": "input_statement",
+      "name": "ifStatement"
+    }
+  ],
+  "inputsInline": false,
   "previousStatement": null,
   "nextStatement": null,
   "colour": 230,
@@ -171,63 +224,80 @@ for (let i = 0; i < blocksJson.length; i++) {
 	};
 }
 
-Blockly.JavaScript['vorwaert'] = function(block) {
-  // TODO: Assemble JavaScript into code variable.
-  // var code = '$(\'#go-forward\').click();';
-  var code = 'moveDir("up");';
+Blockly.JavaScript['ahead'] = function(block) {
+  var code = 'if (!moveDir("up")) break;';
   return code;
 };
 
-Blockly.JavaScript['abbiegen'] = function(block) {
-  var dropdown_abbiegen = block.getFieldValue('abbiegen');
-  var code = '';
+Blockly.JavaScript['tillend'] = function(block) {
+  var statements_tillendstatement = Blockly.JavaScript.statementToCode(block, 'tillEndStatement');
   // TODO: Assemble JavaScript into code variable.
-  if (dropdown_abbiegen === 'links') {
-  	// code = '$(\'#turn-left\').click()';
-  	code = 'moveDir("left");';
+  var exit = 'var timeBeginn = new Date().getTime();'
+  var timeout = 'if ((new Date().getTime() - timeBeginn)/1000 > 5) break;'
+  var code = exit + 'while(!mazeGame.foundExit()) {' + statements_tillendstatement + '}';
+  return code;
+};
 
-  } else if (dropdown_abbiegen === 'rechts'){
-	// code = '$(\'#turn-right\').click();';
-	code = 'moveDir("right");';
+Blockly.JavaScript['turn'] = function(block) {
+  var dropdown_turnto = block.getFieldValue('turnTo');
+  var code = '';
+  if (dropdown_turnto === 'left') {
+    code = 'moveDir("left");';
+
+  } else if (dropdown_turnto === 'right'){
+    code = 'moveDir("right");';
   }
   return code;
 };
 
-Blockly.JavaScript['winkel'] = function(block) {
-  var angle_winkelnumber = block.getFieldValue('winkelNumber');
-  var statements_winkelblock = Blockly.JavaScript.statementToCode(block, 'winkelBlock');
-  // TODO: Assemble JavaScript into code variable.
-  var ifCondition = 'if (mazeGame.getAngle() ===' + angle_winkelnumber + ') {' 
-  					+ statements_winkelblock + '}';
-  var code = ifCondition;
+Blockly.JavaScript['unipath'] = function(block) {
+  var dropdown_pathfree = block.getFieldValue('pathFree');
+  var statements_unipathstatement = Blockly.JavaScript.statementToCode(block, 'uniPathStatement');
+  var code = 'if (mazeGame.getSituation()["' + dropdown_pathfree + '"] === false) {' + statements_unipathstatement + '}';
   return code;
 };
 
-Blockly.JavaScript['bisende'] = function(block) {
-  var statements_bisendeblock = Blockly.JavaScript.statementToCode(block, 'bisEndeBlock');
-  // TODO: Assemble JavaScript into code variable.
-  var code = 'while(!mazeGame.foundExit()) {' + statements_bisendeblock + '}';
-  return code;
-};
-
-Blockly.JavaScript['uniaktion'] = function(block) {
-  var dropdown_nextstep = block.getFieldValue('nextStep');
-  var statements_name = Blockly.JavaScript.statementToCode(block, 'uniAktionBlock');
-  // TODO: Assemble JavaScript into code variable.
-  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_nextstep + '"] === false) {' + statements_name + '}';
-  var code = ifCondition;
-  return code;
-};
-
-Blockly.JavaScript['biaktion'] = function(block) {
-  var dropdown_nextstep = block.getFieldValue('nextStep');
-  var statements_jaaktion = Blockly.JavaScript.statementToCode(block, 'jaAktion');
-  var statements_neinaktion = Blockly.JavaScript.statementToCode(block, 'neinAktion');
-  // TODO: Assemble JavaScript into code variable.
-  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_nextstep + '"] === false) {' + statements_jaaktion + '}';
-  var elseCondition = 'else {' + statements_neinaktion + '}';
+Blockly.JavaScript['bipath'] = function(block) {
+  var dropdown_pathfree = block.getFieldValue('pathFree');
+  var statements_ifstatement = Blockly.JavaScript.statementToCode(block, 'ifStatement');
+  var statements_elsestatement = Blockly.JavaScript.statementToCode(block, 'elseStatement');
+  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_pathfree + '"] === false) {' + statements_ifstatement + '}';
+  var elseCondition = 'else {' + statements_elsestatement + '}';
   var code = ifCondition + elseCondition;
   return code;
 };
 
+Blockly.JavaScript['anglecompare'] = function(block) {
+  var dropdown_compare = block.getFieldValue('compare');
+  var value_angle = Blockly.JavaScript.valueToCode(block, 'angle', Blockly.JavaScript.ORDER_ATOMIC);
+  var code = '';
+  if (dropdown_compare === 'more') {
+    code = ' > ';
+  } else if (dropdown_compare === 'less') {
+    code = ' < ';
+  } else if (dropdown_compare === 'equal') {
+    code = ' === ';
+  } else if (dropdown_compare === 'unequal') {
+    code = ' !== ';
+  } else {
+    code = ' !== ';
+  }
+  code = code + value_angle;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['angle'] = function(block) {
+  var number_anglevalue = block.getFieldValue('angleValue');
+  var code = number_anglevalue + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['if'] = function(block) {
+  var value_ifbranch = Blockly.JavaScript.valueToCode(block, 'ifBranch', Blockly.JavaScript.ORDER_ATOMIC);
+  var statements_ifstatement = Blockly.JavaScript.statementToCode(block, 'ifStatement');
+  var code = 'if (mazeGame.getAngle()' + value_ifbranch + '{' + statements_ifstatement + '}';
+  return code;
+};
 

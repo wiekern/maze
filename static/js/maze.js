@@ -41,7 +41,7 @@ function MazeGame(canvas, options) {
 		actionsList = Array(16);
 	var offsets = {
 		left	:	{ x: -1, y: 0 },
-		up	:	{ x: 0, y:	-1 },
+		up		:	{ x: 0, y:	-1 },
 		right	:	{ x: 1, y: 0 },
 		down	:	{ x: 0, y: 1 }
 	};
@@ -97,6 +97,7 @@ function MazeGame(canvas, options) {
 	
 	function Maze(width, height) {
 		this.m = [];
+		this.visited = [];
 		this.width = width; // size
 		this.height = height;
 		this.start = options.starting_position;
@@ -114,8 +115,10 @@ function MazeGame(canvas, options) {
 		this.initMaze = function () {
 			for (y = 0; y < height; y++) {
 				this.m.push(new Array());
+				this.visited.push(new Array());
 				for (x = 0; x < width; x++) {
 					this.m[y].push(new Cell(x, y));
+					this.visited[y].push(0);
 				}
 			}
 		};
@@ -323,7 +326,7 @@ function MazeGame(canvas, options) {
 		center();
 
 		// choosing a direction to which the tiny man faces.
-		let neighbor = maze.randomNeighbor(currentPos.x, currentPos.y),
+		// let neighbor = maze.randomNeighbor(currentPos.x, currentPos.y),
 			currentCell = maze.getCell(0, 0);
 		if (currentCell.right === false) {
 			currentPos.dir = "right";
@@ -334,9 +337,27 @@ function MazeGame(canvas, options) {
 		} else {
 			console.log("The maze not produced incorrectly.")
 		}
+		// update the direction we faced to at start position.
+		options.starting_position.dir = currentPos.dir;
 		// record position
 		oldPos = currentPos;
-		console.log('setup:' + oldPos.dir + ' ' + oldPos.x);
+		// console.log('setup:' + oldPos.dir + ' ' + oldPos.x);
+	}
+
+	function reInit() {
+		currentPos = Object.assign({}, options.starting_position);
+		path = [];
+		path.push(currentPos);
+		visitedCrossPostions = [];
+		if (isCrossPos(currentPos)) {
+			visitedCrossPostions.push(currentPos);
+		}
+
+		// reset angle
+		startAngle = 0;
+
+		// record position
+		oldPos = currentPos;
 	}
 
 	function center() {
@@ -362,8 +383,18 @@ function MazeGame(canvas, options) {
 		drawMaze();
 	}
 
+	function drawWithoutWall() {
+		// ctx.clearRect(0, 0, canvas.width, canvas.height);
+		drawPath();
+		// drawMaze();
+	}
+
+	function getVisited() {
+		return maze.visited;
+	}
+
 	function isCrossPos(pos) {
-		console.log("isCrossPos" + pos.dir + faceTos);
+		// console.log("isCrossPos" + pos.dir + faceTos);
 		let cell = maze.getCell(pos.x, pos.y),
 			f = faceTos[pos.dir],
 			exits = 0;
@@ -378,13 +409,25 @@ function MazeGame(canvas, options) {
 		}
 
 		if (exits == 3) {
-			console.log("cross pos: true")
+			// console.log("cross pos: true")
 			return true;
 		} else {
-			console.log("cross pos: false")
+			// console.log("cross pos: false")
 			return false;
 		}
 	}
+
+	this.drawPathInTremaux = function() {
+		drawPath();
+	};
+
+	this.getSizeofMaze = function() {
+		return {width: maze.width, height: maze.height};
+	};
+
+	this.getCurrentPos = function() {
+		return currentPos;
+	};
 
 	this.getCurrentStatus = function() {
 		return {
@@ -465,10 +508,6 @@ function MazeGame(canvas, options) {
 			 shortSituation += 1 << 3;
 		} 
 
-		// if (s.down == true) {
-		// 	shortSituation += 1 << 2;
-		// } 
-
 		if (s.left == true) {
 			shortSituation += 1 << 1;
 		} 
@@ -487,7 +526,6 @@ function MazeGame(canvas, options) {
 
 		return {
 			up: cell[faceTo["up"]] === true? "Belgt":"Frei",
-			// "down": cell[faceTo["down"]] === true? "Hinten belegt":"Hinten frei",
 			left: cell[faceTo["left"]] === true? "Belegt":"Frei",
 			right: cell[faceTo["right"]] === true? "Belegt":"Frei"
 		};
@@ -529,15 +567,11 @@ function MazeGame(canvas, options) {
 	this.getForwardDir = function (turnTo) {
 		updateAngle(turnTo);
 		let f = faceTos[currentPos.dir];
-		// console.log("[getForwardDir] pos:" + currentPos.x +" " + currentPos.y);
-		// console.log('[getForwardDir] old dir:' + currentPos.dir + ',forward dir:' + f[turnTo]);
 		return f[turnTo];
 	};
 
 	this.directionChanged = function () {
 		let tmp = oldPos.dir !== currentPos.dir;
-		// console.log('tmp:' + tmp);
-
 		return oldPos.dir !== currentPos.dir;
 	};
 
@@ -555,23 +589,18 @@ function MazeGame(canvas, options) {
 				// console.log('[situationChanged] oldfaceto:' + oldPos.dir +' newfaceto:' + currentPos.dir);
 
 				if (oldCell[oldFaceTo["up"]] !== newCell[newFaceTo["up"]]) {
-					// console.log('situation changed. 1');
 					return true;
 				}
 				if (oldCell[oldFaceTo["down"]] !== newCell[newFaceTo["down"]]) {
-					// console.log('situation changed. 2');
 					return true;
 				}
 				if (oldCell[oldFaceTo["left"]] !== newCell[newFaceTo["left"]]) {
-					// console.log('situation changed. 3');
 					return true;
 				}
 				if (oldCell[oldFaceTo["right"]] !== newCell[newFaceTo["right"]]) {
-					// console.log('situation changed. 4');
 					return true;
 				}
 
-				// console.log('situation not changed.');
 				return false;
 			} else {
 				console.log("incorrect type of inputs");
@@ -599,7 +628,6 @@ function MazeGame(canvas, options) {
 	}
 
 	this.getAngle = function() {
-		// console.log(startAngle)
 		return startAngle;
 	};
 
@@ -609,7 +637,7 @@ function MazeGame(canvas, options) {
 
 	this.turnCircle = function() {
 
-		if (this.getAngle() % 360 === 0 && this.getAngle() !== 0) {
+		if ((this.getAngle() % 360 === 0) && (this.getAngle() !== 0)) {
 			return true;
 		} else {
 			return false;
@@ -628,6 +656,7 @@ function MazeGame(canvas, options) {
 		oldPos = Object.assign({}, currentPos);
 		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
 		// currentPos: old postion we needed, newPos is calculated new position namely current position.
+		console.log('####' + direction);
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
 			y: currentPos.y + offsets[direction].y,
@@ -647,6 +676,7 @@ function MazeGame(canvas, options) {
 					if (maze.isEnd(newPos.x, newPos.y)) {
 						options.onGameEnd(true);
 					}
+
 					return true;
 				} else {
 					return false;
@@ -663,6 +693,74 @@ function MazeGame(canvas, options) {
 				}
 				return true;
 			}
+		}
+	}
+
+	this.moveInTremaux = function(direction, backtrack=false) {
+		oldPos = Object.assign({}, currentPos);
+		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
+		// currentPos: old postion we needed, newPos is calculated new position namely current position.
+		var newPos = {
+			x: currentPos.x + offsets[direction].x,
+			y: currentPos.y + offsets[direction].y,
+			dir: direction
+		};
+		if (gameInProgress && maze.inBounds(newPos.x, newPos.y)) {
+			// console.log('[moveInTremaux]' + direction);
+			if (backtrack || maze.visited[newPos.y][newPos.x] == 0) {
+				if (maze.getCell(currentPos.x, currentPos.y)[direction] === false 
+					&& maze.visited[newPos.y][newPos.x] < 2) {
+					path.push(newPos);
+
+					if (isCrossPos(newPos)) {
+						visitedCrossPostions.push(newPos);
+					}
+					currentPos = newPos;
+					// drawWithoutWall();
+					// ctx.clearRect(sx + 3, sy + 3, options.scale - 3 , options.scale - 3);
+					ctx.strokeStyle = backtrack ? "#d7edff":"#4286f4";
+					ctx.beginPath();
+					ctx.moveTo(options.offset.x + (oldPos.x + 0.5) * options.scale,  options.offset.y + (oldPos.y + 0.5) * options.scale);
+					// for (i = 0; i < path.length - 1; i++) {
+					// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
+					// }
+					ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
+					ctx.stroke();
+
+					// showSteps();
+					if (maze.isEnd(newPos.x, newPos.y)) {
+						options.onGameEnd(true);
+					}
+
+					// times of visiting a cell
+					maze.visited[currentPos.y][currentPos.x]++;
+
+					if (backtrack) {
+						maze.visited[oldPos.y][oldPos.x] = 2;
+					}
+
+					if (maze.visited[oldPos.y][oldPos.x] == 2 && maze.visited[currentPos.y][currentPos.x] == 1) {
+						// Found an unwalked tile while backtracking. Mark our last tile back to 1 so we can visit it again to exit this path.
+						maze.visited[oldPos.y][oldPos.x] = 1;
+						console.log('path......');
+						ctx.strokeStyle = "#4286f4";
+						ctx.beginPath();
+						ctx.moveTo(options.offset.x + (currentPos.x + 0.5) * options.scale,  options.offset.y + (currentPos.y + 0.5) * options.scale);
+						// for (i = 0; i < path.length - 1; i++) {
+						// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
+						// }
+						ctx.lineTo(options.offset.x + (oldPos.x + 0.5) * options.scale, options.offset.y + (oldPos.y + 0.5) * options.scale);
+						ctx.stroke();
+					}
+
+					return true;
+				}
+			} else {
+				console.log("meet a wall.");
+				return false;
+			}
+		} else {
+			return false;
 		}
 	}
 	
@@ -791,5 +889,39 @@ function MazeGame(canvas, options) {
 	this.getSteps = function() {
 		// subtract one to account for the current positon being part of the path
 		return path.length - 1;
-	}
+	};
+
+	this.reset = function() {
+		// clear path
+		for (i = 0; i < path.length - 1; i++) {
+			ctx.clearRect(options.offset.x + path[i].x * options.scale, options.offset.y + path[i].y * options.scale, options.scale, options.scale);
+		}
+		
+		// clear saved data in object Maze.
+		reInit();
+		ctx.clearRect(options.wall_width + 1, options.wall_width + 1, options.scale - options.wall_width - 1, options.scale - options.wall_width - 1);
+		// 
+		img.src = '/static/imgs/pegman.png';
+		img.onload = function () {
+			var dir = "right";
+
+			if (currentPos.dir == "up") {
+				dir = "up";
+			} else if (currentPos.dir == "right") {
+				dir = "right";
+			} else if (currentPos.dir == "down") {
+				dir = "down";
+			} else if (currentPos.dir == "left") {
+				dir = "left";
+			}
+		
+			imgX = manDirections[dir].x;
+			imgY = manDirections[dir].y;
+			sx = options.offset.x + currentPos.x * options.scale,
+			sy = options.offset.y + currentPos.y * options.scale;
+
+			ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, options.scale, options.scale);
+		};
+
+	};
 }
