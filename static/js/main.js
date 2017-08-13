@@ -81,7 +81,28 @@ $(document).ready(function () {
 	});
 
 	$('#save-solution').on('click', function() {
-		crud.saveSolution();
+		var solutionName = $('#save-solution').parent().prev().val();
+		if (!solutionName) {
+			 alert('Bitte geben den Name ein');
+			 return;
+		}
+		console.log('####' + mazeGame.solutionToJson(solutionName));
+		$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName)}, 
+			function(data, status) {
+				if (status !== 'success') {
+					console.log('error:post solution');
+				}
+		});
+	});
+
+	$('#load-solution').on('click', function() {
+		$.get('/api/solutions', function(data) {
+			var data = JSON.parse(data.solutions);
+			$('#load-solution').next().text('');
+			for (var i = 0; i < data.length; i++) {
+				$('#load-solution').next().append('<li><a>' + data[i].name + '</a></li>');
+			}
+		});
 	});
 
 	$('#new-rule').on('click', function() {
@@ -125,10 +146,8 @@ $(document).ready(function () {
 		let situation = mazeGame.getLongSituation();
 		$('#rule-list').append('<tr><td>' + situation.up + '</td>' + '<td>'+ situation.left + '</td>'
 			 + '<td>' + situation.right + '</td>' 
-			 + '<td>' + mazeGame.getActionsOfSituation() + '</td>' 
-			 + '<td><a class="badge" name="' + mazeGame.getShortSituation() + '">' + '&times;</a></td></tr>');
-
-
+			 + '<td>' + mazeGame.getActionsOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '" style="float: right">' + '&times;</a></td></tr>');
+		
 		$('#situation-modal').modal('hide');
 
 		// executeActionsWithTimeout(actionsText);

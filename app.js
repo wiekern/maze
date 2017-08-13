@@ -3,6 +3,7 @@ const router = require('koa-router')();
 const bodyParser = require('koa-bodyparser');
 const controller = require('./controller')
 const templating = require('./templating');
+const rest = require('./middlewares/rest');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -25,13 +26,19 @@ if (!isProduction) {
 
 // parse body of POST request
 app.use(bodyParser());
+
+
 // render view
 app.use(templating('views', {
 	noCache: !isProduction,
 	watch: !isProduction
 }));
+
+app.use(rest.restify());
+
 // routes
 app.use(controller());
+
 
 app.listen(3000);
 console.log('http://localhost:3000');

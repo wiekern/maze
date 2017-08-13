@@ -32,13 +32,19 @@ function MazeGame(canvas, options) {
 		right : {up:"right", down: "left", left:"up", right:"down"}//east
 	};
 	// recording action under all possible situations.
-	// up down left right, 0: free, 1: rand
+	// up down left right, 0: free, 1: wall
 	// ["0000", "0001", "0010", "0011", 
 	// 	"0100", "0101", "0110", "0111",
 	// 	"1000", "1001", "1010", "1011",
 	// 	"1100", "1101", "1110", "1111"];
-	var situations = Array(16),
-		actionsList = Array(16);
+	var solution = {
+		name: '',
+		situations: Array(16),
+		actionsList: Array(16)
+	};
+
+	// var situations = Array(16),
+	// 	actionsList = Array(16);
 	var offsets = {
 		left	:	{ x: -1, y: 0 },
 		up		:	{ x: 0, y:	-1 },
@@ -47,6 +53,7 @@ function MazeGame(canvas, options) {
 	};
 	var sx, sy, dx, dy, imgX, imgY;
 	var img = new Image();
+	img.src = '/static/imgs/pegman.png';
 
 	// width: 1029, height: 51, 21 mans
 	// 49px width/man
@@ -98,6 +105,7 @@ function MazeGame(canvas, options) {
 	function Maze(width, height) {
 		this.m = [];
 		this.visited = [];
+		this.marks = [];
 		this.width = width; // size
 		this.height = height;
 		this.start = options.starting_position;
@@ -109,9 +117,9 @@ function MazeGame(canvas, options) {
 		this.mazeLevel = 0;
 		this.hasIsland = false;
 		this.island;
-		this.c;
-		this.nextC;
-		this.stack = [];
+		// this.c;
+		// this.nextC;
+		// this.stack = [];
 		this.initMaze = function () {
 			for (y = 0; y < height; y++) {
 				this.m.push(new Array());
@@ -207,6 +215,9 @@ function MazeGame(canvas, options) {
 		this.randomNeighbor = function (x, y) {
 			return rand.pickRand(this.availableNeighbors(x, y));
 		};
+		this.randomCell = function() {
+ 			return this.getCell(rand.randomInt(this.width), rand.randomInt(this.height));
+ 		};
 		this.breakWall = function (c1, c2) { //break the wall between cell c1 and c2
 			if (c1.x == c2.x) {
 				if (c1.y < c2.y) {
@@ -259,18 +270,43 @@ function MazeGame(canvas, options) {
 				return false;
 			}
 		};
+		/* Generate the maze using recursive backtracking
+ 		*  https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
+ 		*/
 		this.generateMaze = function () {
-			this.c = this.getCell(rand.randomInt(this.width), rand.randomInt(this.height));
-			this.c.visited = true;
-			this.mazeDo();
-			while (this.stack.length !== 0) {
-				if (this.isDeadEnd(this.c.x, this.c.y) || this.isEnd(this.c.x, this.c.y) || this.isStart(this.c.x, this.c.y)) {
-					this.nextC = this.stack.pop();
-					this.c = this.nextC;
-				} else {
-					this.mazeDo();
-				}
-			}
+			// this.c = this.getCell(rand.randomInt(this.width), rand.randomInt(this.height));
+			// this.c.visited = true;
+			// this.mazeDo();
+			// while (this.stack.length !== 0) {
+			// 	// if (this.isDeadEnd(this.c.x, this.c.y) || this.isEnd(this.c.x, this.c.y) || this.isStart(this.c.x, this.c.y)) {
+			// 	if (this.isDeadEnd(this.c.x, this.c.y)) {
+			// 		this.nextC = this.stack.pop();
+			// 		this.c = this.nextC;
+			// 	} else {
+			// 		this.mazeDo();
+			// 	}
+			// }
+			var current_cell = this.randomCell();
+ 			var next_cell = null;
+ 			
+ 			current_cell.visited = true;
+ 			var visitedStack = [current_cell];
+ 			
+ 			while (visitedStack.length > 0) {
+ 				if (this.isDeadEnd(current_cell.x, current_cell.y)) {
+ 					current_cell = visitedStack.pop();
+ 				} else {
+ 					if (!this.isEdge(current_cell.x, current_cell.y) && !this.hasIsland) {
+						this.island = current_cell;
+						this.hasIsland = true;
+					}
+ 					next_cell = this.randomNeighbor(current_cell.x, current_cell.y);
+ 					next_cell.visited = true;
+ 					this.breakWall(current_cell, next_cell);
+ 					visitedStack.push(current_cell);
+ 					current_cell = next_cell;
+ 				}
+ 			}
 
 			if (this.levelOption === "random") {
 				let r = Math.round(Math.random());
@@ -287,23 +323,57 @@ function MazeGame(canvas, options) {
 				this.generateIsland();
 			} 
 		};
-		this.mazeDo = function () {
-			if (!this.isEdge(this.c.x, this.c.y) && !this.hasIsland) {
-				this.island = this.c;
-				this.hasIsland = true
-			}
-			this.nextC = this.randomNeighbor(this.c.x, this.c.y);
-			this.nextC.visited = true;
-			this.breakWall(this.c, this.nextC);
-			this.stack.push(this.c);
-			this.c = this.nextC;
-		};
+		// this.mazeDo = function () {
+		// 	if (!this.isEdge(this.c.x, this.c.y) && !this.hasIsland) {
+		// 		this.island = this.c;
+		// 		this.hasIsland = true;
+		// 	}
+		// 	this.nextC = this.randomNeighbor(this.c.x, this.c.y);
+		// 	this.nextC.visited = true;
+		// 	this.breakWall(this.c, this.nextC);
+		// 	this.stack.push(this.c);
+		// 	this.c = this.nextC;
+		// };
 		this.generateIsland = function() {
 			this.island.up = true;
 			this.island.down = true;
 			this.island.left = true;
 			this.island.right = true;
 			this.setEightNeighbors(this.island.x, this.island.y);
+		};
+
+		//Mark means cross
+		this.isMark = function (cell) {
+			var exits = 0;
+			if (!cell.up) {
+				exits += 1;
+			}
+			if (!cell.left) {
+				exits += 1;
+			}
+			if (!cell.right) {
+				exits += 1;
+			}
+			if (!cell.down) {
+				exits += 1;
+			}
+
+			if (exits >= 3) {
+				return true;
+			} else {
+				return false;
+			}
+		};
+		this.getAllMarks = function() {
+			this.marks = [];
+			for (y = 0; y < height; y++) {
+				for (x = 0; x < width; x++) {
+					if (this.isMark(this.m[y][x])) {
+						this.marks.push(this.m[y][x]);
+					}
+				}
+			}
+			return this.marks;
 		};
 		this.initMaze();
 		this.generateMaze();
@@ -326,14 +396,11 @@ function MazeGame(canvas, options) {
 		center();
 
 		// choosing a direction to which the tiny man faces.
-		// let neighbor = maze.randomNeighbor(currentPos.x, currentPos.y),
-			currentCell = maze.getCell(0, 0);
+		let currentCell = maze.getCell(0, 0);
 		if (currentCell.right === false) {
 			currentPos.dir = "right";
-			// startAngle = 0;
 		} else if (currentCell.down === false) {
 			currentPos.dir = "down";
-			// startAngle = 270;
 		} else {
 			console.log("The maze not produced incorrectly.")
 		}
@@ -341,10 +408,10 @@ function MazeGame(canvas, options) {
 		options.starting_position.dir = currentPos.dir;
 		// record position
 		oldPos = currentPos;
-		// console.log('setup:' + oldPos.dir + ' ' + oldPos.x);
 	}
 
 	function reInit() {
+		console.log(options.starting_position.x + ' ' + options.starting_position.y);
 		currentPos = Object.assign({}, options.starting_position);
 		path = [];
 		path.push(currentPos);
@@ -369,7 +436,12 @@ function MazeGame(canvas, options) {
 		// options.offset.y = Math.floor((canvas.height / 2) - (maze.height * options.scale / 2));
 		// $("#a").width(maze.width * options.scale + 3).css('padding-top', (canvas.height / 2) - (maze.height * options.scale / 2) - $('h1').height());
 		// $("#time, #steps").css('margin-top', maze.height * options.scale);
-		draw();
+		
+		// draw();
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		drawPath();
+		drawMan();
+		drawMaze();
 	}
 	
 	function start() {
@@ -378,9 +450,9 @@ function MazeGame(canvas, options) {
 	}
 	
 	function draw() {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawPath();
-		drawMaze();
+		// drawMaze();
 	}
 
 	function drawWithoutWall() {
@@ -417,8 +489,38 @@ function MazeGame(canvas, options) {
 		}
 	}
 
+	this.drawMarks = function() {
+		if (maze !== undefined) {
+			var marks = maze.getAllMarks();
+			for (var i = 0; i < marks.length; i++) {
+				// ctx.clearRect(marks[i].x * options.scale + options.wall_width, marks[i].y * options.scale + options.wall_width, options.scale - options.wall_width, options.scale - options.wall_width);
+				// ctx.clearRect(options.offset.x + (marks[i].x + 0.5) * options.scale - (Math.round(options.scale * 0.1) + 1),options.offset.y + (marks[i].y + 0.5) * options.scale - (Math.round(options.scale * 0.1) + 1), 2*(Math.round(options.scale * 0.1) + 1), 2*(Math.round(options.scale * 0.1) + 1));
+				ctx.strokeStyle = 'black';
+				ctx.beginPath();
+				ctx.arc(options.offset.x + (marks[i].x + 0.5) * options.scale,options.offset.y + (marks[i].y + 0.5) * options.scale, 1, 0, 2*Math.PI);
+				ctx.stroke();
+			}
+		} else {
+			console.log('generate maze first.')
+		}
+	};
+
 	this.drawPathInTremaux = function() {
 		drawPath();
+	};
+
+	this.solutionToJson = function(name) {
+		if (!name) {
+			return null;
+		}
+		solution.name = name;
+		var jsonData = JSON.stringify(solution);
+		console.log(jsonData);
+		return jsonData;
+	};
+
+	this.getSolution = function() {
+		return solution;
 	};
 
 	this.getSizeofMaze = function() {
@@ -472,23 +574,23 @@ function MazeGame(canvas, options) {
 	this.storeActions = function(actions) {
 		let i = this.getShortSituation();
 		// console.log("store action:" + i + "..." + action);
-		actionsList[i] = actions;
+		solution.actionsList[i] = actions;
 	}
 
 	this.setSituation = function(b) {
 		let i = this.getShortSituation();
-		situations[i] = b;
+		solution.situations[i] = b;
 	}
 
 	this.removeRule = function(i) {
-		situations[i] = false;
-		actionsList[i] = "";
+		solution.situations[i] = false;
+		solution.actionsList[i] = "";
 	};
 
 	this.isSituationExisted = function() {
 		let i = this.getShortSituation();
-		// console.log("situation:" + i + " " + situations[i]);
-		if (situations[i] === true) {
+		// console.log("situation:" + i + " " + ruleObj.situations[i]);
+		if (solution.situations[i] === true) {
 			return true;
 		} else {
 			return false;
@@ -498,7 +600,28 @@ function MazeGame(canvas, options) {
 	this.getActionsOfSituation = function() {
 		let i = this.getShortSituation();
 		// console.log("action of situation:" + i + "##" + actions[i])
-		return actionsList[i];
+		return solution.actionsList[i];
+	};
+
+	this.shortSituationToObj = function(i) {
+		var s = {
+			up: true,
+			left: true,
+			right: true
+		}
+		if (solution.situation[i] === true) {
+			if ((solution.situation[i] >> 3) & 0x01 === 0) {
+				s.up = false;
+			}
+			if ((solution.situation[i] >> 1) & 0x01 === 0) {
+				s.left = false;
+			}
+			if (solution.situation[i] & 0x01 === 0) {
+				s.right = false;
+			}
+		}
+
+		return s;
 	};
 
 	this.getShortSituation = function() {
@@ -656,7 +779,6 @@ function MazeGame(canvas, options) {
 		oldPos = Object.assign({}, currentPos);
 		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
 		// currentPos: old postion we needed, newPos is calculated new position namely current position.
-		console.log('####' + direction);
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
 			y: currentPos.y + offsets[direction].y,
@@ -717,13 +839,9 @@ function MazeGame(canvas, options) {
 					}
 					currentPos = newPos;
 					// drawWithoutWall();
-					// ctx.clearRect(sx + 3, sy + 3, options.scale - 3 , options.scale - 3);
 					ctx.strokeStyle = backtrack ? "#d7edff":"#4286f4";
 					ctx.beginPath();
 					ctx.moveTo(options.offset.x + (oldPos.x + 0.5) * options.scale,  options.offset.y + (oldPos.y + 0.5) * options.scale);
-					// for (i = 0; i < path.length - 1; i++) {
-					// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
-					// }
 					ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
 					ctx.stroke();
 
@@ -742,17 +860,12 @@ function MazeGame(canvas, options) {
 					if (maze.visited[oldPos.y][oldPos.x] == 2 && maze.visited[currentPos.y][currentPos.x] == 1) {
 						// Found an unwalked tile while backtracking. Mark our last tile back to 1 so we can visit it again to exit this path.
 						maze.visited[oldPos.y][oldPos.x] = 1;
-						console.log('path......');
 						ctx.strokeStyle = "#4286f4";
 						ctx.beginPath();
 						ctx.moveTo(options.offset.x + (currentPos.x + 0.5) * options.scale,  options.offset.y + (currentPos.y + 0.5) * options.scale);
-						// for (i = 0; i < path.length - 1; i++) {
-						// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
-						// }
 						ctx.lineTo(options.offset.x + (oldPos.x + 0.5) * options.scale, options.offset.y + (oldPos.y + 0.5) * options.scale);
 						ctx.stroke();
 					}
-
 					return true;
 				}
 			} else {
@@ -763,27 +876,13 @@ function MazeGame(canvas, options) {
 			return false;
 		}
 	}
-	
-	function drawPath() {
-		// ctx.lineWidth = options.user_path_width;
-		// ctx.strokeStyle = options.colors.visited_block;
-		// ctx.beginPath();
-		// ctx.moveTo(options.offset.x + 0.5 * options.scale, 0);
-		// for (i = 0; i < path.length - 1; i++) {
-		// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
-		// }
-		// ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
-		// ctx.stroke();
-		animate();
-		// circle(currentPos.x, currentPos.y, options.colors.current_position);
-	}
 
 	function manMoves() {
 		//line width: 2
-		// ctx.clearRect(sx + 3, sy + 3, 49, 51);
-		ctx.clearRect(sx + 3, sy + 3, options.scale - 3 , options.scale - 3);
+		ctx.clearRect(sx, sy, options.scale - options.wall_width, options.scale - options.wall_width);
 		// console.log("manMoves" + sx + ":" + dx + "," + sy + ":" + dy);
 
+		clearMarks();
 		// draw path
 		ctx.lineWidth = options.user_path_width;
 		ctx.strokeStyle = options.colors.visited_block;
@@ -795,27 +894,26 @@ function MazeGame(canvas, options) {
 		ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
 		ctx.stroke();
 
+		//draw marks
+		drawMarks();
+		
 		// draw man
-		// ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, 49, 51);
-		// console.log('draw image' + dx + ' ' + dy);
-		ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, options.scale, options.scale);
+		ctx.drawImage(img, imgX, imgY, 49, 51, dx, dy, options.scale - options.wall_width, options.scale - options.wall_width);
+		// if (dx - sx > 0) {
+		// 	sx = sx + 1;
+		// } else if (dx - sx < 0) {
+		// 	sx = sx - 1;
+		// }
 
+		// if (dy - sy > 0) {
+		// 	sy = sy + 1;
+		// } else {
+		// 	sy = sy - 1;
+		// }
 
-		if (dx - sx > 0) {
-			sx = sx + 1;
-		} else if (dx - sx < 0) {
-			sx = sx - 1;
-		}
-
-		if (dy - sy > 0) {
-			sy = sy + 1;
-		} else {
-			sy = sy - 1;
-		}
-
-		if (sx !== dx || sy !== dy) {
-			requestAnimationFrame(manMoves);
-		}
+		// if (sx !== dx || sy !== dy) {
+		// 	requestAnimationFrame(manMoves);
+		// }
 	}
 
 	// sx: source x, sy: source y; dx: destination x, dy: destination y
@@ -823,8 +921,8 @@ function MazeGame(canvas, options) {
 		// var img = new Image();
 		// width: 1029, height: 51, 21 mans
 		// 49px width/man
-		img.src = '/static/imgs/pegman.png';
-		img.onload = function () {
+		// img.src = '/static/imgs/pegman.png';
+		// img.onload = function () {
 			var dir = "right";
 
 			if (currentPos.dir == "up") {
@@ -841,13 +939,75 @@ function MazeGame(canvas, options) {
  			currentDir = directions[dir]; // record current direction.
 			imgX = manDirections[dir].x;
 			imgY = manDirections[dir].y;
-			// console.log(options.offset.x + " " + options.offset.y);
-			dx = options.offset.x + currentPos.x * options.scale,
-			dy = options.offset.y + currentPos.y * options.scale,
-			sx = options.offset.x + oldPos.x * options.scale,
-			sy = options.offset.y + oldPos.y * options.scale;
+			dx = options.offset.x + currentPos.x * options.scale + options.wall_width,
+			dy = options.offset.y + currentPos.y * options.scale + options.wall_width,
+			sx = options.offset.x + oldPos.x * options.scale + options.wall_width,
+			sy = options.offset.y + oldPos.y * options.scale + options.wall_width;
 			manMoves();
+		// };
+	}
+
+	function drawMan() {
+		img.src = '/static/imgs/pegman.png';
+		img.onload = function () {
+			var dir = "right";
+
+			if (currentPos.dir == "up") {
+				dir = "up";
+			} else if (currentPos.dir == "right") {
+				dir = "right";
+			} else if (currentPos.dir == "down") {
+				dir = "down";
+			} else if (currentPos.dir == "left") {
+				dir = "left";
+			}
+		
+ 			currentDir = directions[dir]; // record current direction.
+			imgX = manDirections[dir].x;
+			imgY = manDirections[dir].y;
+			dx = options.offset.x + currentPos.x * options.scale + options.wall_width,
+			dy = options.offset.y + currentPos.y * options.scale + options.wall_width,
+			ctx.drawImage(img, imgX, imgY, 49, 51, dx, dy, options.scale - options.wall_width, options.scale - options.wall_width);
 		};
+	}
+	
+	function drawPath() {
+		// ctx.lineWidth = options.user_path_width;
+		// ctx.strokeStyle = options.colors.visited_block;
+		// ctx.beginPath();
+		// ctx.moveTo(options.offset.x + 0.5 * options.scale, 0);
+		// for (i = 0; i < path.length - 1; i++) {
+		// 	ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
+		// }
+		// ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
+		// ctx.stroke();
+		animate();
+		// circle(currentPos.x, currentPos.y, options.colors.current_position);
+	}
+
+	function clearMarks() {
+		if (maze !== undefined) {
+			var marks = maze.getAllMarks();
+			for (var i = 0; i < marks.length; i++) {
+				ctx.clearRect(options.offset.x + marks[i].x * options.scale + options.wall_width, 
+							  options.offset.y + marks[i].y * options.scale + options.wall_width,
+							  options.scale - options.wall_width, options.scale - options.wall_width);
+			}
+		}
+	}
+
+	function drawMarks() {
+		if (maze !== undefined) {
+			var marks = maze.getAllMarks();
+			for (var i = 0; i < marks.length; i++) {
+				ctx.strokeStyle = 'black';
+				ctx.beginPath();
+				ctx.arc(options.offset.x + (marks[i].x + 0.5) * options.scale,options.offset.y + (marks[i].y + 0.5) * options.scale, 1, 0, 2*Math.PI);
+				ctx.stroke();
+			}
+		} else {
+			console.log('generate maze first.')
+		}
 	}
 	
 	function drawMaze() {
@@ -893,14 +1053,27 @@ function MazeGame(canvas, options) {
 
 	this.reset = function() {
 		// clear path
-		for (i = 0; i < path.length - 1; i++) {
-			ctx.clearRect(options.offset.x + path[i].x * options.scale, options.offset.y + path[i].y * options.scale, options.scale, options.scale);
+		for (i = 0; i < path.length; i++) {
+			ctx.clearRect(options.offset.x + path[i].x * options.scale + options.wall_width, 
+				          options.offset.y + path[i].y * options.scale + options.wall_width, 
+				          options.scale - options.wall_width, options.scale - options.wall_width);
 		}
 		
 		// clear saved data in object Maze.
 		reInit();
-		ctx.clearRect(options.wall_width + 1, options.wall_width + 1, options.scale - options.wall_width - 1, options.scale - options.wall_width - 1);
-		// 
+		ctx.clearRect(options.wall_width, options.wall_width, options.scale - options.wall_width, options.scale - options.wall_width);
+		
+		// draw start path
+		ctx.lineWidth = options.user_path_width;
+		ctx.strokeStyle = options.colors.visited_block;
+		ctx.beginPath();
+		ctx.moveTo(options.offset.x + 0.5 * options.scale, 0);
+		for (i = 0; i < path.length - 1; i++) {
+			ctx.lineTo(options.offset.x + (path[i].x + 0.5) * options.scale, options.offset.y + (path[i].y + 0.5) * options.scale);
+		}
+		ctx.lineTo(options.offset.x + (currentPos.x + 0.5) * options.scale, options.offset.y + (currentPos.y + 0.5) * options.scale);
+		ctx.stroke();
+
 		img.src = '/static/imgs/pegman.png';
 		img.onload = function () {
 			var dir = "right";
@@ -917,10 +1090,10 @@ function MazeGame(canvas, options) {
 		
 			imgX = manDirections[dir].x;
 			imgY = manDirections[dir].y;
-			sx = options.offset.x + currentPos.x * options.scale,
-			sy = options.offset.y + currentPos.y * options.scale;
+			sx = options.offset.x + options.wall_width,
+			sy = options.offset.y + options.wall_width;
 
-			ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, options.scale, options.scale);
+			ctx.drawImage(img, imgX, imgY, 49, 51, sx, sy, options.scale - options.wall_width, options.scale - options.wall_width);
 		};
 
 	};
