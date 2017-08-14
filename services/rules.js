@@ -23,8 +23,8 @@ function Rule(solution_id, front_side, left_side, right_side, actions) {
 }
 
 module.exports = {
-    getRules: (solution_id) => {
-        var rules = RuleModel.findAll({
+    getRules: async (solution_id) => {
+        var rules = await RuleModel.findAll({
             where: {
                 solution_id: solution_id
             }
@@ -47,8 +47,8 @@ module.exports = {
     createRule: async (solution_id, front_side, left_side, right_side, actions) => {
         var now = Date.now();
         var p = await RuleModel.create({
-            // id: 'd-' + now,
-            id: nextId(),
+            id: 'd-' + now,
+            // id: nextId(),
             solution_id: solution_id,
             front_side: front_side,
             left_side: left_side,

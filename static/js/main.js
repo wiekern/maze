@@ -1,5 +1,5 @@
 
-var mazeGame;
+var mazeGame, workspace;
 var time, timer, startTime;
 var mazeOptions = {
 	onGameEnd: function(didWin){
@@ -15,9 +15,9 @@ var mazeOptions = {
 	}
 };
 
+
 $(document).ready(function () {
-	var workspace = Blockly.inject('blocklyDiv',
-  	{toolbox: document.getElementById('toolbox')});
+	workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
   	Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
   	// For test.
 	var workspaceBlocks = document.getElementById("workspaceBlocks"); 
@@ -25,7 +25,6 @@ $(document).ready(function () {
 	Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
 
   	$("#runCode").click(function () {
-  		// console.log(Blockly.Xml.workspaceToDom(workspace));
   		mazeGame.reset();
         var code = Blockly.JavaScript.workspaceToCode(workspace);
         console.log(code);
@@ -86,23 +85,64 @@ $(document).ready(function () {
 			 alert('Bitte geben den Name ein');
 			 return;
 		}
-		console.log('####' + mazeGame.solutionToJson(solutionName));
-		$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName)}, 
-			function(data, status) {
-				if (status !== 'success') {
-					console.log('error:post solution');
-				}
-		});
+		// rule
+		if ($('#game-mode span').text() === 'Blockly') {
+			$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName)}, 
+				function(data, status) {
+					if (status !== 'success') {
+						console.log('error:post solution');
+					}
+			});
+		} else if ($('#game-mode span').text() === 'Regel') {	//Blockly
+			var code = Blockly.Xml.workspaceToDom(workspace);
+			var code_text = Blockly.Xml.domToText(code);
+			var solution = JSON.stringify({name: solutionName, code: code_text});
+			// console.log(code_text);
+			$.post('/api/blocklys', {solution: solution}, 
+				function(data, status) {
+					if (status !== 'success') {
+						console.log('error:post blockly solution');
+					}
+			});
+		}
+		
 	});
 
 	$('#load-solution').on('click', function() {
-		$.get('/api/solutions', function(data) {
-			var data = JSON.parse(data.solutions);
-			$('#load-solution').next().text('');
-			for (var i = 0; i < data.length; i++) {
-				$('#load-solution').next().append('<li><a>' + data[i].name + '</a></li>');
-			}
-		});
+		if ($('#game-mode span').text() === 'Blockly') {	//rule
+			$.get('/api/solutions', function(data) {
+				var res = JSON.parse(data.solutions);
+				$('#load-solution').next().text('');
+				for (var i = 0; i < res.length; i++) {
+					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
+				}
+			});
+		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
+			$.get('/api/blocklys', function(data) {
+				var res = JSON.parse(data.solutions);
+				$('#load-solution').next().text('');
+				for (var i = 0; i < res.length; i++) {
+					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
+				}
+			});
+		}
+	});
+
+	$('#solutions-list').on('click', 'a', function() {
+		var name = $(this).text();
+		if ($('#game-mode span').text() === 'Blockly') {	//rule
+			$.get('/api/solutions/'+$(this).text(), function(data) {
+				var solutionObj = mazeGame.updateSolutionObj(data.solution);
+				loadSolution(solutionObj);
+			});
+		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
+			$.get('/api/blocklys/'+$(this).text(), function(data) {
+				// console.log(data);
+				loadSolutionOfBlockly(data.solution);
+				// var solutionObj = mazeGame.updateSolutionObj(data.solution);
+				// loadSolution(solutionObj);
+			});
+		}
 	});
 
 	$('#new-rule').on('click', function() {
@@ -214,6 +254,33 @@ $(window).on('keydown', function (e) {
 	}
 });
 
+function loadSolutionOfRule(solution) {
+	if (solution !== undefined && solution) {
+		$('#rule-list').text('');
+		for (var i = 0; i < solution.situations.length; i++) {
+			let situation = solution.situations[i];
+			if (situation === true) {
+				console.log(i);
+				situation = mazeGame.shortSituationToObj(i);
+				$('#rule-list').append('<tr><td>' + situation.up + '</td>' 
+				+ '<td>'+ situation.left + '</td>'
+		 		+ '<td>' + situation.right + '</td>' 
+		 		+ '<td>' + solution.actionsList[i]
+		 		+ '<a class="badge" name="' + i 
+		 		+ '" style="float: right">' + '&times;</a></td></tr>');
+			}
+		}
+	}
+}
+
+function loadSolutionOfBlockly(solution) {
+	if (solution !== undefined && solution) {
+		solution = JSON.parse(solution);
+		var xml = Blockly.Xml.textToDom(solution.code);
+		Blockly.Xml.domToWorkspace(xml, workspace);
+	}
+}
+
 function showRule() {
 	$('#game-mode span').text('Blockly');
 	$('#mode-blockly').hide();
@@ -280,7 +347,7 @@ function moveDir(dir) {
 	let forwardDir = mazeGame.getForwardDir(dir);
 	
 	// show all steps if game mode is Regel.
-	console.log($('#game-mode span').text());
+	// console.log($('#game-mode span').text());
 	if ($('#game-mode span').text() === 'Blockly') {
 		showCurrentStatus(forwardDir);
 	}

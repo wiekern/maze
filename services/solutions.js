@@ -22,13 +22,19 @@ module.exports = {
         return JSON.stringify(solutions);
     },
 
-    getSolution: (id) => {
-        var solution = SolutionModel.findAll({
+    getSolution: async (name) => {
+        var solution = await SolutionModel.findOne({
             where: {
-                id: id
+                name: name
             }
         });
-        return JSON.stringify(solution);
+
+        var rules = await ruleSevice.getRules(solution.get('id'));
+        var res = {};
+        res.name = solution.get('name');
+        res.rules = rules;
+        console.log(res);
+        return res;
     },
 
     createSolution: async (solution) => {
@@ -40,8 +46,8 @@ module.exports = {
         }
 
         var p =  await SolutionModel.create({
-            // id: 'd-' + now,
-            id: nextId(),
+            id: 'd-' + now,
+            // id: nextId(),
             name: solu.name,
             createdAt: now,
             updatedAt: now,
@@ -57,16 +63,18 @@ module.exports = {
                 right: true
             };
             if (solu.situations[i] === true) {
-                if ((solu.situations[i] >> 3) & 0x01 === 0) {
+                console.log(((i>>3 & 0x01) === 0));
+                if (((i >> 3) & 0x01) === 0) {
                     s.up = false;
                 }
-                if ((solu.situations[i] >> 1) & 0x01 === 0) {
+                if (((i >> 1) & 0x01) === 0) {
                     s.left = false;
                 }
-                if (solu.situations[i] & 0x01 === 0) {
+                if ((i & 0x01) === 0) {
                     s.right = false;
                 }
                 // console.log('solution id:' + p.get('id'));
+                console.log(s);
                 ruleSevice.createRule(p.get('id'), s.up, s.left, s.right, solu.actionsList[i]);
             }
 
@@ -74,10 +82,10 @@ module.exports = {
         return JSON.stringify(p);;
     },
 
-    deleteSolution: (id) => {
-        var solution = SolutionModel.findAll({
+    deleteSolution: async (name) => {
+        var solution = await SolutionModel.findAll({
             where: {
-                id: id
+                name: name
             }
         });
         solution.destory();

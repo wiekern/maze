@@ -411,7 +411,7 @@ function MazeGame(canvas, options) {
 	}
 
 	function reInit() {
-		console.log(options.starting_position.x + ' ' + options.starting_position.y);
+		// console.log(options.starting_position.x + ' ' + options.starting_position.y);
 		currentPos = Object.assign({}, options.starting_position);
 		path = [];
 		path.push(currentPos);
@@ -428,6 +428,8 @@ function MazeGame(canvas, options) {
 	}
 
 	function center() {
+		var screenWidth = $(window).width();
+		options.scale = Math.floor((screenWidth * 0.5 - (options.wall_width * (maze.width + 1))) / maze.width);
 		canvas.width = maze.width * options.scale + 3;
 		canvas.height = maze.height * options.scale + 3;
 		// canvas.width = $('body').width();
@@ -515,9 +517,27 @@ function MazeGame(canvas, options) {
 		}
 		solution.name = name;
 		var jsonData = JSON.stringify(solution);
-		console.log(jsonData);
+		// console.log(jsonData);
 		return jsonData;
 	};
+
+	this.updateSolutionObj = function(s) {
+		if (s !== undefined && s) {
+			solution.name = s.name;
+			var rules = JSON.parse(s.rules);
+			for (var i = 0; i < rules.length; i++) {
+				var si = {
+					up: rules[i].front_side,
+					left: rules[i].left_side,
+					right: rules[i].right_side
+				};
+				var index = this.getShortSituation(si);
+				solution.situations[index] = true;
+				solution.actionsList[index] = rules[i].actions;
+			}
+			return solution;
+		}
+	}
 
 	this.getSolution = function() {
 		return solution;
@@ -609,14 +629,14 @@ function MazeGame(canvas, options) {
 			left: true,
 			right: true
 		}
-		if (solution.situation[i] === true) {
-			if ((solution.situation[i] >> 3) & 0x01 === 0) {
+		if (solution.situations[i] === true) {
+			if ((i >> 3) & 0x01 === 0) {
 				s.up = false;
 			}
-			if ((solution.situation[i] >> 1) & 0x01 === 0) {
+			if ((i >> 1) & 0x01 === 0) {
 				s.left = false;
 			}
-			if (solution.situation[i] & 0x01 === 0) {
+			if (i & 0x01 === 0) {
 				s.right = false;
 			}
 		}
@@ -624,8 +644,8 @@ function MazeGame(canvas, options) {
 		return s;
 	};
 
-	this.getShortSituation = function() {
-		let s = this.getSituation(),
+	this.getShortSituation = function(tmp) {
+		let s = tmp || this.getSituation(),
 			shortSituation = 0x0;
 		if (s.up == true) {
 			 shortSituation += 1 << 3;
