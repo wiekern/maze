@@ -33,15 +33,27 @@ module.exports = {
         var res = {};
         res.name = solution.get('name');
         res.rules = rules;
-        console.log(res);
+        // console.log(res);
         return res;
     },
 
     createSolution: async (solution) => {
-        var now = Date.now();
+        var now = Date.now(), ruleIsEmpty = true;
         var solu = JSON.parse(solution);
         if (!solu) {
             console.log('parse solution failed.');
+            return ;
+        }
+
+        for (var i = 0; i < solu.situations.length; i++) {
+            if (solu.situations[i] === true) {
+                ruleIsEmpty = false;
+                break;
+            }
+        }
+
+        if (ruleIsEmpty) {
+            console.log('ruleIsEmpty');
             return ;
         }
 
@@ -75,7 +87,7 @@ module.exports = {
                 }
                 // console.log('solution id:' + p.get('id'));
                 console.log(s);
-                ruleSevice.createRule(p.get('id'), s.up, s.left, s.right, solu.actionsList[i]);
+                await ruleSevice.createRule(p.get('id'), s.up, s.left, s.right, solu.marks[i], solu.actionsList[i]);
             }
 
         }

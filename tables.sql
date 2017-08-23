@@ -4,6 +4,7 @@ create table rules (
     front_side bool not null,
     left_side bool not null,
     right_side bool not null,
+    mark bool not null,
     actions varchar(100) not null,
     createdAt bigint not null,
     updatedAt bigint not null,

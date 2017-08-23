@@ -6,5 +6,6 @@ module.exports = db.defineModel('rules', {
     front_side: db.BOOLEAN,
     left_side: db.BOOLEAN,
     right_side: db.BOOLEAN,
+    mark: db.BOOLEAN,
     actions: db.STRING(100)
 });

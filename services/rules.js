@@ -44,7 +44,7 @@ module.exports = {
         return JSON.stringify(rule);
     },
 
-    createRule: async (solution_id, front_side, left_side, right_side, actions) => {
+    createRule: async (solution_id, front_side, left_side, right_side, mark, actions) => {
         var now = Date.now();
         var p = await RuleModel.create({
             id: 'd-' + now,
@@ -53,6 +53,7 @@ module.exports = {
             front_side: front_side,
             left_side: left_side,
             right_side: right_side,
+            mark: mark,
             actions: actions,
             createdAt: now,
             updatedAt: now,
