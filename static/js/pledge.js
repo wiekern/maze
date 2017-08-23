@@ -31,9 +31,10 @@ function pledgeAlgo() {
 	}
 }
 
-var gsituation, gcounter = 0;
+var gsituation, gcounter = 0, gend = true;
 function pledgeAlgoWithTimeout(speed) {
 	if(!mazeGame.foundExit()) {
+		gend = false;
 		gsituation = mazeGame.getSituation();
 		if (gcounter === 0) {
 			if (gsituation.up === false) {
@@ -64,20 +65,27 @@ function pledgeAlgoWithTimeout(speed) {
 		window.setTimeout(function() {
 			pledgeAlgoWithTimeout(speed);
 		}, speed);	
+	} else {
+		gend = true;
 	}
 }
 
 function Controller(walker) {
-	this.algorithm = new TremauxAlgo(walker);
+	this.end = true;
+	this.init = function() {
+		this.algorithm = new TremauxAlgo(walker);
+	};
 	this.run = function() {
 		if (!this.algorithm.isDone()) {
+			this.end = false;
 			this.algorithm.step();
 			
 			var that = this;
 			window.setTimeout(function() {
 				that.run();
-				console.log('timeout');
 			}, 100);
+		} else {
+			this.end = true;
 		}
 	};
 }
@@ -103,23 +111,20 @@ function TremauxAlgo(walker) {
 	};
 	// this.end = walker.maze.end,
 	this.mazeSize = this.walker.getSizeofMaze();
-	
+
 	this.step = function() {
 		// console.log('current dir:' + this.walker.getCurrentPos().dir);
 
 		var startingDirection = this.direction;
-		while (!walker.moveInTremaux(this.numToDir[this.direction])) {
+		while (!this.walker.moveInTremaux(this.numToDir[this.direction])) {
 			// Hit a wall. Turn to the right.		
-			// console.log('!!' + this.numToDir[this.direction]);
 			this.direction++;
 
 			if (this.direction > 3) {
 				this.direction = 0;
 			}
 			
-			// console.log(this.direction == startingDirection);
 			if (this.direction == startingDirection) {
-				// console.log('360 ' + this.numToDir[this.direction]);
 				// We've turned in a complete circle with no new path available. Time to backtrack.
 				while (!this.walker.moveInTremaux(this.numToDir[this.direction], true)) {
 					// Hit a wall. Turn to the right.
@@ -133,7 +138,6 @@ function TremauxAlgo(walker) {
 				break;
 			}
 		}
-		// this.walker.drawPathInTremaux();
 	};
 	
 	this.isDone = function() {
