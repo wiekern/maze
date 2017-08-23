@@ -1,5 +1,5 @@
 
-var mazeGame, workspace;
+var mazeGame, workspace, moveList = [], modalIsHided = false;
 var time, timer, startTime;
 var mazeOptions = {
 	onGameEnd: function(didWin){
@@ -24,7 +24,7 @@ $(document).ready(function () {
 	/* Load blocks to workspace. */
 	Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
 
-  	$("#runCode").click(function () {
+  	$("#run-code").click(function () {
   		mazeGame.reset();
         var code = Blockly.JavaScript.workspaceToCode(workspace);
         console.log(code);
@@ -105,7 +105,6 @@ $(document).ready(function () {
 					}
 			});
 		}
-		
 	});
 
 	$('#load-solution').on('click', function() {
@@ -117,6 +116,7 @@ $(document).ready(function () {
 					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
 				}
 			});
+			$('#run-solution').removeClass().addClass('btn btn-success');
 		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
 			$.get('/api/blocklys', function(data) {
 				var res = JSON.parse(data.solutions);
@@ -125,33 +125,66 @@ $(document).ready(function () {
 					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
 				}
 			});
+			$('#run-solution').removeClass().addClass('btn btn-success');
 		}
 	});
 
 	$('#solutions-list').on('click', 'a', function() {
 		var name = $(this).text();
 		if ($('#game-mode span').text() === 'Blockly') {	//rule
-			$.get('/api/solutions/'+$(this).text(), function(data) {
+			$.get('/api/solutions/'+$(this).text(), function(data) {				
 				var solutionObj = mazeGame.updateSolutionObj(data.solution);
-				loadSolution(solutionObj);
+				// console.log(solutionObj);
+				loadSolutionOfRule(solutionObj);
 			});
 		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
 			$.get('/api/blocklys/'+$(this).text(), function(data) {
-				// console.log(data);
 				loadSolutionOfBlockly(data.solution);
-				// var solutionObj = mazeGame.updateSolutionObj(data.solution);
-				// loadSolution(solutionObj);
 			});
 		}
 	});
 
+	$('#run-solution').on('click', function() {
+		mazeGame.reset();
+		if ($('#game-mode span').text() === 'Blockly') {
+			$('#action-list').text('');
+			let actionsText = mazeGame.getActionsOfSituation();
+			do {
+				if (executeActions(actionsText) === false) {
+					break;
+				}
+				// update the rule (actions)
+				actionsText = mazeGame.getActionsOfSituation();
+				// console.log('actionsText:' + actionsText);
+			} while (mazeGame.isSituationExisted());
+
+			if (!mazeGame.foundExit()) {
+				$('#situation-modal').one('hidden.bs.modal', function (e) {
+					showSituation();
+				});
+			} else {
+				$('#situation-modal').modal('hide');
+				center($("#options").show());
+			}
+		} else if ($('#game-mode span').text() === 'Regel') {
+	        var code = Blockly.JavaScript.workspaceToCode(workspace);
+	        console.log(code);
+	        try {
+	            eval(code);
+	        } catch (e) {
+	            alert(e);
+	        }
+		}
+	});
+
 	$('#new-rule').on('click', function() {
+		$('#alert-msg span').text('Stelle neue Regel.')
 		showSituation();
 	});
 
-	$('#cross-mark').on('click', function() {
-		mazeGame.drawMarks();
-	});
+	// $('#cross-mark').on('click', function() {
+	// 	mazeGame.drawMarks();
+	// });
 
 	$('#rule-list').delegate('a', 'click', function() {
 		mazeGame.removeRule($(this).attr('name'));
@@ -161,6 +194,10 @@ $(document).ready(function () {
 	$('#action-list').delegate('a', 'click', function() {
 		mazeGame.removeRule($(this).attr('name'));
 		$(this).parent().remove();
+	});
+
+	$('#place-mark').on('click', function() {
+		mazeGame.placeMark();
 	});
 
 	$('#go-forward').on('click', function(){
@@ -173,7 +210,7 @@ $(document).ready(function () {
 		addAction("R");
 	});
 
-	$('#executeAction').on('click', function() {
+	$('#execute-action').on('click', function() {
 		let actionsText = $('#actions').val();
 		if (!actionsText) {
 			return;
@@ -184,46 +221,54 @@ $(document).ready(function () {
 		mazeGame.storeActions(actionsText);
 		// 2. show rule
 		let situation = mazeGame.getLongSituation();
-		$('#rule-list').append('<tr><td>' + situation.up + '</td>' + '<td>'+ situation.left + '</td>'
+		$('#rule-list').append('<tr><td>' + situation.up + '</td>' 
+			 + '<td>'+ situation.left + '</td>'
 			 + '<td>' + situation.right + '</td>' 
-			 + '<td>' + mazeGame.getActionsOfSituation() + '<a class="badge" name="' + mazeGame.getShortSituation() + '" style="float: right">' + '&times;</a></td></tr>');
+			 + '<td>' + mazeGame.getActionsOfSituation() 
+			 + '<a class="badge" name="' + mazeGame.getShortSituation() 
+			 + '" style="float: right">' + '&times;</a></td></tr>');
 		
 		$('#situation-modal').modal('hide');
 
-		// executeActionsWithTimeout(actionsText);
+		$('#situation-modal').one('hidden.bs.modal', function (e) {
+			modalIsHided = true;
+		});
+
+		mazeGame.saveCurPos();
 		do {
-			if (executeActions(actionsText) === false) {
+			if (simulateActions(actionsText) === false) {
+				console.log('@@@action finished, break');
 				break;
 			}
 			// update the rule (actions)
 			actionsText = mazeGame.getActionsOfSituation();
-			// console.log('actionsText:' + actionsText);
+			console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
-		if (!mazeGame.foundExit()) {
-			$('#situation-modal').one('hidden.bs.modal', function (e) {
-				showSituation();
-			});
-		} else {
-			$('#situation-modal').modal('hide');
-			center($("#options").show());
-		}
+		executeActions(moveList);
 	});
 
-	// showSituation();
 	showRule();
 
 	//Pledge Algo
 	$('#pledge-algo').on('click', function() {
-		// pledgeAlgo();
-		mazeGame.reset();
-		pledgeAlgoWithTimeout(300);
+		if (gend) {
+			mazeGame.reset();
+			pledgeAlgoWithTimeout(300);	
+		}
 	});
 	var controller = new Controller(mazeGame);
 
 	$('#tremaux-algo').on('click', function() {
-		mazeGame.reset();
-		controller.run();
+		console.log('[end]' + controller.end);
+		if (controller.end) {
+			mazeGame.reset();
+			controller.init();
+			controller.run();	
+		} else {
+			console.log('not end...');
+		}
+
 	});
 });
 $(window).on('keydown', function (e) {
@@ -260,11 +305,11 @@ function loadSolutionOfRule(solution) {
 		for (var i = 0; i < solution.situations.length; i++) {
 			let situation = solution.situations[i];
 			if (situation === true) {
-				console.log(i);
 				situation = mazeGame.shortSituationToObj(i);
-				$('#rule-list').append('<tr><td>' + situation.up + '</td>' 
-				+ '<td>'+ situation.left + '</td>'
-		 		+ '<td>' + situation.right + '</td>' 
+				$('#rule-list').append(
+				'<tr><td>' + (situation.up === true?'Belegt':'Frei') + '</td>' 
+				+ '<td>'+ (situation.left === true?'Belegt':'Frei') + '</td>'
+		 		+ '<td>' + (situation.right === true?'Belegt':'Frei') + '</td>' 
 		 		+ '<td>' + solution.actionsList[i]
 		 		+ '<a class="badge" name="' + i 
 		 		+ '" style="float: right">' + '&times;</a></td></tr>');
@@ -294,56 +339,41 @@ function addAction(action) {
 	$('#actions').val(actionsText);
 }
 
-function executeActions(actions) {
+function simulateActions(actions) {
 	for (var i = 0; i < actions.length; i++) {
 		if (actions[i] === 'L') {
-			moveDir("left");
+			moveList.push('left');
+			if (!simulateMoveDir("left")) {
+				return false;
+			}
 		} else if (actions[i] === 'R') {
-			moveDir("right");
+			moveList.push('right');
+			if (!simulateMoveDir("right")) {
+				return false;
+			}
 		} else if (actions[i] === 'V') {
-			if (moveDir("up") === false) {
+			moveList.push('up');
+			if (!simulateMoveDir("up")) {
 				return false;
 			}
 		}
-
-		if (mazeGame.foundExit()) {
-			return false;
-		}
-		if (mazeGame.turnCircle()) {
-			mazeGame.resetAngle();
-			return false;
-		} 
-		// if (mazeGame.curPosInCrossPos()) {
-		// 	return false;
-		// }
 	}
 }
 
-function executeActionsWithTimeout(actionsText) {
+function simulateMoveDir(dir) {
 
-	if (executeActions(actionsText) === false) {
-		return;
-	}
-	// update the rule (actions)
-	actionsText = mazeGame.getActionsOfSituation();
+	let forwardDir = mazeGame.getForwardDir(dir);
 
-	if (mazeGame.isSituationExisted()) {
-		window.setTimeout(function() {
-			executeActions(actionsText);
-		}, 100);
+	if (!mazeGame.simulateMove(forwardDir)) {
+		return false;
 	}
 
-	if (!mazeGame.foundExit()) {
-		$('#situation-modal').one('hidden.bs.modal', function (e) {
-			showSituation();
-		});
-	} else {
-		$('#situation-modal').modal('hide');
-		center($("#options").show());
-	}
+	return true;
 }
+
 
 function moveDir(dir) {
+
 	let forwardDir = mazeGame.getForwardDir(dir);
 	
 	// show all steps if game mode is Regel.
@@ -351,23 +381,78 @@ function moveDir(dir) {
 	if ($('#game-mode span').text() === 'Blockly') {
 		showCurrentStatus(forwardDir);
 	}
-	if (mazeGame.move(forwardDir) === false) {
+
+	if (!mazeGame.move(forwardDir)) {
 		return false;
 	}
 
-	// if (mazeGame.turnCircle()) {
-	// 	mazeGame.resetAngle();
-	// 	return false;
-	// }
 	return true;
+}
+
+function executeActions(actions) {
+	mazeGame.restoreCurPos();
+	let i = 0,len = actions.length;
+	var wrapperMoveDir = function() {
+		setTimeout(function() {
+			moveDir(actions[i++]);
+			if (i < len) {
+				wrapperMoveDir();
+			} else {
+				moveList = [];
+				if (!mazeGame.foundExit()) {
+					console.log(mazeGame.getMsgType());
+					if (!modalIsHided) {
+						$('#situation-modal').off('hidden.bs.modal').one('hidden.bs.modal', function (e) {
+							if (mazeGame.getMsgType().WALL) {
+								$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
+							} else if (mazeGame.getMsgType().MARK) {
+								$('#alert-msg span').text('Marker liegt vor.');
+							} else if (mazeGame.getMsgType().CIRCLE) {
+								$('#alert-msg span').text('drehe um 360 Grad um.');
+							} else {
+								$('#alert-msg span').text('Treffe eine neue Situation.');
+							}
+							showSituation();
+						});
+					} else {
+						modalIsHided = false;
+						if (mazeGame.getMsgType().WALL) {
+							$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
+						} else if (mazeGame.getMsgType().MARK) {
+							$('#alert-msg span').text('Marker liegt vor.');
+						} else if (mazeGame.getMsgType().CIRCLE) {
+							$('#alert-msg span').text('drehe um 360 Grad um.');
+						} else {
+							$('#alert-msg span').text('Treffe eine neue Situation.');
+						}
+						showSituation();
+					}
+				} else {
+					$('#situation-modal').modal('hide');
+					center($("#options").show());
+				}
+			}
+
+			
+		}, 200);
+	};
+	wrapperMoveDir();
 }
 
 function showCurrentStatus(forwardDir) {
 	let status = mazeGame.getCurrentStatus();
 
-	$('#action-list').append('<tr><td>' + status.faceTo + '</td>' + '<td>'+ status.x + '</td>'
+	var toGerman = {
+		up: 'oben',
+		down: 'unten',
+		left: 'links',
+		right: 'rechts'
+	}
+
+	$('#action-list').append('<tr><td>' + toGerman[status.faceTo] + '</td>'
+	 + '<td>'+ status.x + '</td>'
 	 + '<td>' + status.y + '</td>' 
-	 + '<td>' + forwardDir + '</td>');
+	 + '<td>' + toGerman[forwardDir] + '</td>');
 }
 
 function showSituation() {
