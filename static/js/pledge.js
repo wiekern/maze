@@ -70,6 +70,33 @@ function pledgeAlgoWithTimeout(speed) {
 	}
 }
 
+function rightHand(speed) {
+	if(!mazeGame.foundExit()) {
+		gend = false;
+		gsituation = mazeGame.getSituation();
+
+		if (gsituation.right === false) {
+			moveDir("right");
+			moveDir("up");
+		} else if (gsituation.up === false) {
+			moveDir("up");
+		} else if (gsituation.left === false) {
+			moveDir("left");
+			moveDir("up");
+		} else {
+			moveDir("left");
+			moveDir("left");
+			moveDir("up");
+		}
+	
+		window.setTimeout(function() {
+			pledgeAlgoWithTimeout(speed);
+		}, speed);	
+	} else {
+		gend = true;
+	}
+}
+
 function Controller(walker) {
 	this.end = true;
 	this.init = function() {

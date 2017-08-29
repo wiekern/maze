@@ -1,8 +1,13 @@
 const ruleSevice = require('../services/rules');
+const userSevice = require('../services/users');
 const model = require('../model');
 // RuleModel.belongsTo(SolutionModel, {foreignKey: 'solution_id'});
 let SolutionModel = model.Solution,
     RuleModel = model.Rule;
+    UserModel = model.User;
+    
+SolutionModel.belongsTo(UserModel, {foreignKey: 'userId'});
+
 
 var id = 0;
 
@@ -17,32 +22,70 @@ function Solution(rules) {
 }
 
 module.exports = {
-    getSolutions: async () => {
-        var solutions = await SolutionModel.findAll();
-        return JSON.stringify(solutions);
-    },
+    getSolutions: async (username) => {
 
-    getSolution: async (name) => {
-        var solution = await SolutionModel.findOne({
+        var user = await UserModel.findOne({
             where: {
-                name: name
+                name: username
+            }
+        });
+        if (!user) {
+            return JSON.stringify({ok: false, msg: 'user not existed.'});
+        }
+
+        var solutions = await SolutionModel.findAll({
+            where: {
+                userId: user.get('id')
             }
         });
 
+        if (solutions.length !== 0) {
+            return JSON.stringify({ok: true, msg: 'solutions returned.', res: solutions});
+        } else {
+            return JSON.stringify({ok: false, msg: 'no solutions.'});
+        }
+    },
+
+    getSolution: async (name, username) => {
+
+        var user = await UserModel.findOne({
+            where: {
+                name: username
+            }
+        });
+
+        if (!user) {
+            return JSON.stringify({ok: false, msg: 'user not existed.'});
+        }
+
+        var solution = await SolutionModel.findOne({
+            where: {
+                name: name,
+                userId: user.get('id')
+            }
+        });
+
+        if (!solution) {
+            return JSON.stringify({ok: false, msg: 'solution not found.'});
+        }
+
         var rules = await ruleSevice.getRules(solution.get('id'));
+        if (!rules) {
+            return JSON.stringify({ok: false, msg: 'no rules of this solution.'});
+        }
+
         var res = {};
         res.name = solution.get('name');
         res.rules = rules;
-        // console.log(res);
-        return res;
+
+        return JSON.stringify({ok: true, msg: 'solution returned.', res: res});
     },
 
-    createSolution: async (solution) => {
+    createSolution: async (solution, username) => {
         var now = Date.now(), ruleIsEmpty = true;
         var solu = JSON.parse(solution);
         if (!solu) {
-            console.log('parse solution failed.');
-            return ;
+            return JSON.stringify({ok: true, msg: 'parse solution failed'});
         }
 
         for (var i = 0; i < solu.situations.length; i++) {
@@ -53,20 +96,30 @@ module.exports = {
         }
 
         if (ruleIsEmpty) {
-            console.log('ruleIsEmpty');
-            return ;
+            return JSON.stringify({ok: false, msg: 'rule is empty.'});
+        }
+
+        var user = await UserModel.findOne({
+            where: {
+                name: username
+            }
+        });
+
+        if (!user) {
+            return JSON.stringify({ok: false, msg: 'user not existed.'});
         }
 
         var p =  await SolutionModel.create({
             id: 'd-' + now,
-            // id: nextId(),
             name: solu.name,
+            userId: user.get('id'),
             createdAt: now,
             updatedAt: now,
             version: 0
+        }).catch(function(err) {
+            return JSON.stringify({ok: false, msg: 'create solution failed.'});
         });
-
-        // console.log('##############' + JSON.stringify(p));
+            
         
         for (var i = 0; i < solu.situations.length; i++) {
             var s = {
@@ -85,22 +138,35 @@ module.exports = {
                 if ((i & 0x01) === 0) {
                     s.right = false;
                 }
-                // console.log('solution id:' + p.get('id'));
-                console.log(s);
-                await ruleSevice.createRule(p.get('id'), s.up, s.left, s.right, solu.marks[i], solu.actionsList[i]);
+                var rule = await ruleSevice.createRule(p.get('id'), s.up, s.left, s.right, solu.marks[i], solu.actionsList[i]);
+                if (!rule) {
+                    p.destory();
+                    return JSON.stringify({ok: false, msg: 'created rules failed.'});
+                }
             }
 
         }
-        return JSON.stringify(p);;
+        return JSON.stringify({ok: true, msg: 'solution created.', res: p});
     },
 
-    deleteSolution: async (name) => {
+    deleteSolution: async (name, username) => {
+
+        var user = await UserModel.findOne({
+            where: {
+                name: username
+            }
+        });
+        if (!user) {
+            return JSON.stringify({ok: false, msg: 'user not existed.'});
+        }
+
         var solution = await SolutionModel.findAll({
             where: {
-                name: name
+                name: name,
+                userId: user.get('id') 
             }
         });
         solution.destory();
-        return JSON.stringify(solution);
+        return JSON.stringify({ok: true, msg: 'solution deleted.', res: solution});
     }
 };

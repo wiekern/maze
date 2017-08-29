@@ -1,4 +1,4 @@
-
+var gUsername;
 var mazeGame, workspace, moveList = [], modalIsHided = false;
 var time, timer, startTime;
 var mazeOptions = {
@@ -37,7 +37,7 @@ $(document).ready(function () {
 
 	mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
 
-	$("form").on('submit', function () {
+	$("#options form").on('submit', function () {
 		mazeOptions.level_size = [$('#w').val(), $('#h').val()];
 		mazeOptions.levelOption = $('#level-option input:radio:checked').val();
 		mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
@@ -59,7 +59,6 @@ $(document).ready(function () {
 
 	$('#game-mode span').on('click', function() {
 		var game_mode = $(this).text();
-		console.log(game_mode);
 		if (game_mode === 'Blockly') {
 			$(this).text('Regel');
 			$('#mode-blockly').show();
@@ -83,25 +82,35 @@ $(document).ready(function () {
 		var solutionName = $('#save-solution').parent().prev().val();
 		if (!solutionName) {
 			 alert('Bitte geben den Name ein');
-			 return;
+			 return ;
 		}
 		// rule
 		if ($('#game-mode span').text() === 'Blockly') {
-			$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName)}, 
+			gUsername = $('#username').text();
+			if (!gUsername) {
+				alert('Nutzer ist Leer.');
+				return ;
+			}
+			$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName), username: gUsername}, 
 				function(data, status) {
-					if (status !== 'success') {
-						console.log('error:post solution');
+					if (!data.ok) {
+						alert(data.msg);
 					}
+
 			});
 		} else if ($('#game-mode span').text() === 'Regel') {	//Blockly
 			var code = Blockly.Xml.workspaceToDom(workspace);
 			var code_text = Blockly.Xml.domToText(code);
 			var solution = JSON.stringify({name: solutionName, code: code_text});
-			// console.log(code_text);
-			$.post('/api/blocklys', {solution: solution}, 
+			gUsername = $('#username').text();
+			if (!gUsername) {
+				alert('Nutzer ist Leer.');
+				return ;
+			}
+			$.post('/api/blocklys', {solution: solution, username: gUsername}, 
 				function(data, status) {
-					if (status !== 'success') {
-						console.log('error:post blockly solution');
+					if (!data.ok) {
+						alert(data.msg);
 					}
 			});
 		}
@@ -109,20 +118,48 @@ $(document).ready(function () {
 
 	$('#load-solution').on('click', function() {
 		if ($('#game-mode span').text() === 'Blockly') {	//rule
-			$.get('/api/solutions', function(data) {
-				var res = JSON.parse(data.solutions);
-				$('#load-solution').next().text('');
-				for (var i = 0; i < res.length; i++) {
-					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
+			gUsername = $('#username').text();
+			if (!gUsername) {
+				alert('Nutzer ist Leer.');
+				return ;
+			}
+			$('#load-solution').next().text('');
+			$.get('/api/solutions', {username: gUsername}, 
+			function(data) {
+				if (!data.ok) {
+					alert(data.msg);
+					return ;
+				} else {
+					var res = data.res
+					for (var i = 0; i < res.length; i++) {
+						$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
+					}
 				}
 			});
 			$('#run-solution').removeClass().addClass('btn btn-success');
 		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
-			$.get('/api/blocklys', function(data) {
-				var res = JSON.parse(data.solutions);
-				$('#load-solution').next().text('');
-				for (var i = 0; i < res.length; i++) {
-					$('#load-solution').next().append('<li><a>' + res[i].name + '</a></li>');
+			gUsername = $('#username').text();
+			if (!gUsername) {
+				alert('Nutzer ist Leer.');
+				return ;
+			}
+			$('#load-solution').next().text('');
+			$.get('/api/blocklys', {username: gUsername}, 
+			function(data) {
+				gUsername = $('#username').text();
+				if (!gUsername) {
+					alert('Nutzer ist Leer.');
+					return ;
+				}
+
+				if (data.ok) {
+					var solutions = data.res;
+
+					for (var i = 0; i < solutions.length; i++) {
+						$('#load-solution').next().append('<li><a>' + solutions[i].name + '</a></li>');
+					}
+				} else {
+					alert(data,msg);
 				}
 			});
 			$('#run-solution').removeClass().addClass('btn btn-success');
@@ -131,15 +168,31 @@ $(document).ready(function () {
 
 	$('#solutions-list').on('click', 'a', function() {
 		var name = $(this).text();
+		gUsername = $('#username').text();
+		if (!gUsername) {
+			alert('Nutzer ist Leer.');
+			return ;
+		}
 		if ($('#game-mode span').text() === 'Blockly') {	//rule
-			$.get('/api/solutions/'+$(this).text(), function(data) {				
-				var solutionObj = mazeGame.updateSolutionObj(data.solution);
-				// console.log(solutionObj);
-				loadSolutionOfRule(solutionObj);
+			$.get('/api/solutions/'+$(this).text(), {username: gUsername}, 
+			function(data) {
+				if (data.ok) {
+					var solutionObj = mazeGame.updateSolutionObj(data.res);
+					// console.log(solutionObj);
+					loadSolutionOfRule(solutionObj);			
+				} else {
+					alert(data.msg)
+				}
+
 			});
 		} else if ($('#game-mode span').text() === 'Regel') {	//blockly
-			$.get('/api/blocklys/'+$(this).text(), function(data) {
-				loadSolutionOfBlockly(data.solution);
+			$.get('/api/blocklys/'+$(this).text(), {username: gUsername},
+			function(data) {
+				if (data.ok){
+					loadSolutionOfBlockly(data.res);
+				} else {
+					alert(data.msg);
+				}
 			});
 		}
 	});
@@ -148,24 +201,19 @@ $(document).ready(function () {
 		mazeGame.reset();
 		if ($('#game-mode span').text() === 'Blockly') {
 			$('#action-list').text('');
+
 			let actionsText = mazeGame.getActionsOfSituation();
+			mazeGame.saveCurPos();
 			do {
-				if (executeActions(actionsText) === false) {
+				if (simulateActions(actionsText) === false) {
 					break;
 				}
 				// update the rule (actions)
 				actionsText = mazeGame.getActionsOfSituation();
-				// console.log('actionsText:' + actionsText);
 			} while (mazeGame.isSituationExisted());
 
-			if (!mazeGame.foundExit()) {
-				$('#situation-modal').one('hidden.bs.modal', function (e) {
-					showSituation();
-				});
-			} else {
-				$('#situation-modal').modal('hide');
-				center($("#options").show());
-			}
+			executeActions(moveList);
+
 		} else if ($('#game-mode span').text() === 'Regel') {
 	        var code = Blockly.JavaScript.workspaceToCode(workspace);
 	        console.log(code);
@@ -181,10 +229,6 @@ $(document).ready(function () {
 		$('#alert-msg span').text('Stelle neue Regel.')
 		showSituation();
 	});
-
-	// $('#cross-mark').on('click', function() {
-	// 	mazeGame.drawMarks();
-	// });
 
 	$('#rule-list').delegate('a', 'click', function() {
 		mazeGame.removeRule($(this).attr('name'));
@@ -237,12 +281,12 @@ $(document).ready(function () {
 		mazeGame.saveCurPos();
 		do {
 			if (simulateActions(actionsText) === false) {
-				console.log('@@@action finished, break');
+				// console.log('action finished, break');
 				break;
 			}
 			// update the rule (actions)
 			actionsText = mazeGame.getActionsOfSituation();
-			console.log('actionsText:' + actionsText);
+			// console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
 		executeActions(moveList);
@@ -257,6 +301,13 @@ $(document).ready(function () {
 			pledgeAlgoWithTimeout(300);	
 		}
 	});
+	$('#hand-algo').on('click', function() {
+		if (gend) {
+			mazeGame.reset();
+			rightHand(300);	
+		}
+	});
+
 	var controller = new Controller(mazeGame);
 
 	$('#tremaux-algo').on('click', function() {
@@ -300,8 +351,8 @@ $(window).on('keydown', function (e) {
 });
 
 function loadSolutionOfRule(solution) {
-	if (solution !== undefined && solution) {
-		$('#rule-list').text('');
+	$('#rule-list').html('');
+	if (solution) {
 		for (var i = 0; i < solution.situations.length; i++) {
 			let situation = solution.situations[i];
 			if (situation === true) {
@@ -319,7 +370,8 @@ function loadSolutionOfRule(solution) {
 }
 
 function loadSolutionOfBlockly(solution) {
-	if (solution !== undefined && solution) {
+	workspace.clear();
+	if (solution) {
 		solution = JSON.parse(solution);
 		var xml = Blockly.Xml.textToDom(solution.code);
 		Blockly.Xml.domToWorkspace(xml, workspace);
@@ -377,7 +429,6 @@ function moveDir(dir) {
 	let forwardDir = mazeGame.getForwardDir(dir);
 	
 	// show all steps if game mode is Regel.
-	// console.log($('#game-mode span').text());
 	if ($('#game-mode span').text() === 'Blockly') {
 		showCurrentStatus(forwardDir);
 	}
@@ -408,7 +459,7 @@ function executeActions(actions) {
 							} else if (mazeGame.getMsgType().MARK) {
 								$('#alert-msg span').text('Marker liegt vor.');
 							} else if (mazeGame.getMsgType().CIRCLE) {
-								$('#alert-msg span').text('drehe um 360 Grad um.');
+								$('#alert-msg span').text('Drehe sich um 360 Grad.');
 							} else {
 								$('#alert-msg span').text('Treffe eine neue Situation.');
 							}
@@ -421,7 +472,7 @@ function executeActions(actions) {
 						} else if (mazeGame.getMsgType().MARK) {
 							$('#alert-msg span').text('Marker liegt vor.');
 						} else if (mazeGame.getMsgType().CIRCLE) {
-							$('#alert-msg span').text('drehe um 360 Grad um.');
+							$('#alert-msg span').text('Drehe sich um 360 Grad.');
 						} else {
 							$('#alert-msg span').text('Treffe eine neue Situation.');
 						}
@@ -456,7 +507,7 @@ function showCurrentStatus(forwardDir) {
 }
 
 function showSituation() {
-	if (mazeGame != undefined) {
+	if (mazeGame) {
 
 		let situation = mazeGame.getSituation();
 
@@ -499,7 +550,7 @@ function showTime() {
 
 function showSteps() {
 	var steps = 0
-	if (mazeGame != undefined)
+	if (mazeGame)
 		steps = mazeGame.getSteps()
 	$("#steps").html(steps + " step" + (steps !== 1 ? "s" : ""));
 }

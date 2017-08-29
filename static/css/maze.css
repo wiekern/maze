@@ -13,41 +13,12 @@ html, body {
 canvas {
 	display:block;
 	margin-left: 10px;
-	/*position:absolute;*/
 }
 
 a, a:visited {
 	color:#67b9e8;
 	text-decoration: none;
 }
-
-/*h1 {
-	margin-top:-.2em;
-	text-indent: 2px;
-}
-	h1 span {
-		font-family:Georgia;
-		font-size:.55em;
-		font-weight:400;
-		color:#666;
-	}*/
-
-/*#time,#steps {
-	font-family:Georgia;
-	font-size:20px;
-	float:left;
-	width:49%;
-}
-
-#steps {
-	float:right;
-	text-align:right;
-}*/
-
-/*#a {*/
-	/*position:relative;*/
-	/*margin: 0 auto;*/
-/*}*/
 
 #options {
 	display:none;
@@ -87,35 +58,6 @@ form #h {
 	width: 4em;
 }	
 
-/*form {
-	text-align:center;
-}
-	form label {
-		display: none;
-	}
-	form input {
-		background: #000;
-		border: 1px solid #333;
-		color: #fff;
-		padding: .3em;
-		font-size: .9em;
-		width: 4em;
-	}
-	form button {
-		display: block;
-		margin: 0 auto;
-		margin-top: 1em;
-		background: #EE4646;
-		color: white;
-		border: none;
-		border-radius: 2px;
-		font-size: 1em;
-		text-shadow: 0 1px 0 rgba(0, 0, 0, .5);
-		padding: .3em 1.4em;
-		box-shadow: 0 1px 1px rgba(0, 0, 0, 1);
-		cursor: pointer;
-	}*/
-
 fieldset {
 	border:none;
 	margin:0 0 10px;
@@ -131,12 +73,10 @@ fieldset {
 }
 
 .modal-content {
-	/*background-color: rgba(0,0,0,0.5);*/
 	opacity: 0.8;
 }
 
 .btn-transparent {
-	/*background-color: transparent;*/
 }
 
 ul {
@@ -197,6 +137,13 @@ ul {
 
 .modal.right.fade.in .modal-dialog {
 	right: 0;
+}
+
+.vertical-center {
+  min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+  min-height: 100vh; /* These two lines are counted as one 🙂       */
+  display: flex;
+  align-items: center;
 }
 
 

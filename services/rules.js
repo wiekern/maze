@@ -48,7 +48,6 @@ module.exports = {
         var now = Date.now();
         var p = await RuleModel.create({
             id: 'd-' + now,
-            // id: nextId(),
             solution_id: solution_id,
             front_side: front_side,
             left_side: left_side,

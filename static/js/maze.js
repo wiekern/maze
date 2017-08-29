@@ -41,10 +41,19 @@ function MazeGame(canvas, options) {
 	// 	"1100", "1101", "1110", "1111"];
 	var solution = {
 		name: '',
-		situations: Array(16),
-		marks: Array(16),
-		actionsList: Array(16)
+		situations: Array(16).fill(false),
+		marks: Array(16).fill(false),
+		actionsList: Array(16).fill('')
 	};
+
+	function initSolution() {
+		solution = {
+			name: '',
+			situations: Array(16).fill(false),
+			marks: Array(16).fill(false),
+			actionsList: Array(16).fill('')
+		};
+	}
 
 	// var situations = Array(16),
 	// 	actionsList = Array(16);
@@ -517,7 +526,8 @@ function MazeGame(canvas, options) {
 	};
 
 	this.updateSolutionObj = function(s) {
-		if (s !== undefined && s) {
+		initSolution(); 
+		if (s) {
 			solution.name = s.name;
 			var rules = JSON.parse(s.rules);
 			for (var i = 0; i < rules.length; i++) {
@@ -527,7 +537,6 @@ function MazeGame(canvas, options) {
 					right: rules[i].right_side
 				};
 				var index = this.getShortSituation(si);
-				console.log(index);
 				solution.situations[index] = true;
 				solution.marks[index] = rules[i].mark;
 				solution.actionsList[index] = rules[i].actions;
@@ -567,34 +576,39 @@ function MazeGame(canvas, options) {
 	function curPosInMarks() {
 		for (var i = 0; i < marks.length; i++) {
 			if (marks[i].x === currentPos.x && marks[i].y === currentPos.y) {
-				console.log("[Marker] true");
 				return true;
 			} else {
-				console.log("[Marker] false");
 				return false;
 			}
 		}
 	}
 
-	this.curPosInPath = function() {
-		for (var i = path.length - 1; i >= 0; i--) {
-			console.log(path[i]);
-		}
-
-		if (path.length <= 1) {
-			console.log("[curPosInPath] false");
-			return false;
-		}
-
-		for (var i = 0; i < path.length - 1; i++) {
-			if (path[i].x === currentPos.x && path[i].y === currentPos.y) {
-				console.log("[curPosInPath] true");
+	this.markPlaced = function() {
+		for (var i = 0; i < marks.length; i++) {
+			if (marks[i].x === currentPos.x && marks[i].y === currentPos.y) {
 				return true;
+			} else {
+				return false;
 			}
 		}
-		console.log("[curPosInPath] false");
-		return false;
 	};
+
+	// this.curPosInPath = function() {
+	// 	for (var i = path.length - 1; i >= 0; i--) {
+	// 		console.log(path[i]);
+	// 	}
+
+	// 	if (path.length <= 1) {
+	// 		return false;
+	// 	}
+
+	// 	for (var i = 0; i < path.length - 1; i++) {
+	// 		if (path[i].x === currentPos.x && path[i].y === currentPos.y) {
+	// 			return true;
+	// 		}
+	// 	}
+	// 	return false;
+	// };
 
 	this.storeActions = function(actions) {
 		let i = this.getShortSituation();
@@ -614,7 +628,7 @@ function MazeGame(canvas, options) {
 
 	this.isSituationExisted = function() {
 		let i = this.getShortSituation();
-		console.log("situation:" + i + " " + solution.situations[i]);
+		// console.log("situation:" + i + " " + solution.situations[i]);
 		if (solution.situations[i] === true) {
 			return true;
 		} else {
@@ -862,7 +876,7 @@ function MazeGame(canvas, options) {
 
 	this.move = function(direction) {
 		oldPos = Object.assign({}, currentPos);
-		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
+		console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
 		// currentPos: old postion we needed, newPos is calculated new position namely current position.
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
@@ -1077,7 +1091,7 @@ function MazeGame(canvas, options) {
 	}
 
 	function clearMarks() {
-		if (marks !== undefined) {
+		if (marks) {
 			for (var i = 0; i < marks.length; i++) {
 				ctx.clearRect(
 					options.offset.x + marks[i].x * options.scale + options.wall_width, 
@@ -1088,7 +1102,7 @@ function MazeGame(canvas, options) {
 	}
 
 	function drawMarks() {
-		if (marks !== undefined) {
+		if (marks) {
 			for (var i = 0; i < marks.length; i++) {
 				circle(marks[i].x, marks[i].y, options.colors.marks);
 			}

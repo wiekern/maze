@@ -208,6 +208,47 @@ var blocksJson = [{
   "colour": 230,
   "tooltip": "",
   "helpUrl": ""
+},
+{
+  "type": "marker",
+  "message0": "Marker setzen",
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 180,
+  "tooltip": "",
+  "helpUrl": ""
+},
+{
+  "type": "markerexists",
+  "message0": "Wenn %1 %2 %3 Sonst %4",
+  "args0": [
+    {
+      "type": "field_dropdown",
+      "name": "markStatus",
+      "options": [
+        [
+          "Marker gesetzt",
+          "hasMark"
+        ]
+      ]
+    },
+    {
+      "type": "input_dummy"
+    },
+    {
+      "type": "input_statement",
+      "name": "hasMarkStatement"
+    },
+    {
+      "type": "input_statement",
+      "name": "noMarkStatement"
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 195,
+  "tooltip": "",
+  "helpUrl": ""
 }];
 
 for (let i = 0; i < blocksJson.length; i++) {
@@ -225,7 +266,7 @@ for (let i = 0; i < blocksJson.length; i++) {
 }
 
 Blockly.JavaScript['ahead'] = function(block) {
-  var code = 'if (!moveDir("up")) break;';
+  var code = 'moveDir("up");';
   return code;
 };
 
@@ -298,6 +339,21 @@ Blockly.JavaScript['if'] = function(block) {
   var value_ifbranch = Blockly.JavaScript.valueToCode(block, 'ifBranch', Blockly.JavaScript.ORDER_ATOMIC);
   var statements_ifstatement = Blockly.JavaScript.statementToCode(block, 'ifStatement');
   var code = 'if (mazeGame.getAngle()' + value_ifbranch + '{' + statements_ifstatement + '}';
+  return code;
+};
+
+Blockly.JavaScript['marker'] = function(block) {
+  // TODO: Assemble JavaScript into code variable.
+  var code = 'mazeGame.placeMark();\n';
+  return code;
+};
+
+Blockly.JavaScript['markerexists'] = function(block) {
+  var dropdown_markstatus = block.getFieldValue('markStatus');
+  var statements_hasmarkstatement = Blockly.JavaScript.statementToCode(block, 'hasMarkStatement');
+  var statements_nomarkstatement = Blockly.JavaScript.statementToCode(block, 'noMarkStatement');
+  // TODO: Assemble JavaScript into code variable.
+  var code = 'if (mazeGame.markPlaced()) {' + statements_hasmarkstatement + '} else {' + statements_nomarkstatement  +'}\n';
   return code;
 };
 
