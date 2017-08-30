@@ -328,11 +328,11 @@ $(window).on('keydown', function (e) {
 			37: "left",
 			38: "up",
 			39: "right",
-			40: "down",
-			65: "left",
-			87: "up",
-			68: "right",
-			83: "down"
+			40: "down"
+			// 65: "left",
+			// 87: "up",
+			// 68: "right",
+			// 83: "down"
 		};
 	if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
 		// send arrow keys and wsad to game
