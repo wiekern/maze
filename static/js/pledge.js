@@ -18,25 +18,25 @@ function pledgeAlgo(speed) {
 				if (gsituation.up === false) {
 					moveDir("up", true);
 				} else {
-					moveDir("left", true);
-					gcounter -= 1;
-				}
-			} else {	//along with right-hand
-				if (gsituation.right === false) {
 					moveDir("right", true);
 					gcounter += 1;
+				}
+			} else {	//along with left-hand
+				if (gsituation.left === false) {
+					moveDir("left", true); // im Uhrzeigersinn
+					gcounter -= 1;
 					moveDir("up", true);
 				} else if (gsituation.up === false) {
 					moveDir("up", true);
-				} else if (gsituation.left === false) {
-					moveDir("left");
-					gcounter -= 1;
+				} else if (gsituation.right === false) {
+					moveDir("right");
+					gcounter += 1;
 					moveDir("up");
 				} else {
-					moveDir("left", true);
-					gcounter -= 1;
-					moveDir("left", true);
-					gcounter -= 1;
+					moveDir("right", true);
+					gcounter += 1;
+					moveDir("right", true);
+					gcounter += 1;
 					moveDir("up", true);
 				}
 			}
