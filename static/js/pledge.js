@@ -13,32 +13,38 @@ function pledgeAlgo(speed) {
 	if(!mazeGame.foundExit()) {
 		gend = false;
 		gsituation = mazeGame.getSituation();
-		if (gcounter === 0) {
-			if (gsituation.up === false) {
-				moveDir("up", true);
-			} else {
-				moveDir("left", true);
-				gcounter -= 1;
+		try {
+			if (gcounter === 0) {
+				if (gsituation.up === false) {
+					moveDir("up", true);
+				} else {
+					moveDir("left", true);
+					gcounter -= 1;
+				}
+			} else {	//along with right-hand
+				if (gsituation.right === false) {
+					moveDir("right", true);
+					gcounter += 1;
+					moveDir("up", true);
+				} else if (gsituation.up === false) {
+					moveDir("up", true);
+				} else if (gsituation.left === false) {
+					moveDir("left");
+					gcounter -= 1;
+					moveDir("up");
+				} else {
+					moveDir("left", true);
+					gcounter -= 1;
+					moveDir("left", true);
+					gcounter -= 1;
+					moveDir("up", true);
+				}
 			}
-		} else {	//along with right-hand
-			if (gsituation.right === false) {
-				moveDir("right", true);
-				gcounter += 1;
-				moveDir("up", true);
-			} else if (gsituation.up === false) {
-				moveDir("up", true);
-			} else if (gsituation.left === false) {
-				moveDir("left");
-				gcounter -= 1;
-				moveDir("up");
-			} else {
-				moveDir("left", true);
-				gcounter -= 1;
-				moveDir("left", true);
-				gcounter -= 1;
-				moveDir("up", true);
-			}
+		} catch (e) {
+			console.log('pledge catch.');
+			gend = true;
 		}
+
 		id = window.setTimeout(function() {
 			pledgeAlgo(speed);
 		}, speed);	
@@ -63,28 +69,30 @@ function rightHand(speed) {
 	if(!mazeGame.foundExit()) {
 		gend = false;
 		gsituation = mazeGame.getSituation();
-
-		if (gsituation.right === false) {
-			moveDir("right", true);
-			moveDir("up", true);
-		} else if (gsituation.up === false) {
-			moveDir("up", true);
-		} else if (gsituation.left === false) {
-			moveDir("left", true);
-			moveDir("up", true);
-		} else {
-			moveDir("left", true);
-			moveDir("left", true);
-			moveDir("up", true);
+		try {		
+			if (gsituation.right === false) {
+				moveDir("right", true);
+				moveDir("up", true);
+			} else if (gsituation.up === false) {
+				moveDir("up", true);
+			} else if (gsituation.left === false) {
+				moveDir("left", true);
+				moveDir("up", true);
+			} else {
+				moveDir("left", true);
+				moveDir("left", true);
+				moveDir("up", true);
+			}
+		} catch (e) {
+			console.log('right hand catch.');
+			gend = true;
 		}
-	
+
 		id = window.setTimeout(function() {
 			rightHand(speed);
 		}, speed);	
 	} else {
-		$('#tremaux-algo').removeClass().addClass('btn');
-		$('#pledge-algo').removeClass().addClass('btn');
-		$("#run-code").removeClass().addClass('btn btn-default');
+		console.log('right hand end.');
 		gend = true;
 	}
 }
@@ -113,9 +121,9 @@ function Controller(walker) {
 				that.run();
 			}, 100);
 		} else {
-			$('#hand-algo').removeClass().addClass('btn');
-			$('#pledge-algo').removeClass().addClass('btn');
-			$("#run-code").removeClass().addClass('btn btn-default');
+			// $('#hand-algo').removeClass().addClass('btn');
+			// $('#pledge-algo').removeClass().addClass('btn');
+			// $("#run-code").removeClass().addClass('btn btn-default');
 			this.end = true;
 		}
 	};

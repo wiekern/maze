@@ -1,5 +1,5 @@
 var gUsername, algoExit = false, taskId = 0;
-var mazeGame, workspace, moveList = [], modalIsHided = false;
+var mazeGame, controller, workspace, moveList = [], modalIsHided = false;
 var time, timer, startTime;
 var mazeOptions = {
 	onGameEnd: function(didWin){
@@ -70,6 +70,7 @@ function initApi(interpreter, scope) {
 
 $(document).ready(function () {
 	mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
+	controller = new Controller(mazeGame);
 
 	workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
   	Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
@@ -131,6 +132,7 @@ $(document).ready(function () {
 		mazeOptions.level_size = [$('#w').val(), $('#h').val()];
 		mazeOptions.levelOption = $('#level-option input:radio:checked').val();
 		mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
+		controller = new Controller(mazeGame);
 		$('#options, #end-game').hide();
 		return false;
 	});
@@ -155,16 +157,19 @@ $(document).ready(function () {
 			Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
 			$('#mode-rule').hide();
 			$('#new-rule').hide();
+			$('#run-solution').hide();
 		} else if (game_mode === 'Regel') {
 			$(this).text('Blockly');
 			$('#mode-blockly').hide();
 			$('#mode-rule').show();
 			$('#new-rule').show();
+			$('#run-solution').show();
 		} else {
 			$(this).text('Regel');
 			$('#mode-blockly').hide();
 			$('#mode-rule').show();
 			$('#new-rule').show();
+			$('#run-solution').show();
 		}
 	});
 
@@ -198,6 +203,7 @@ $(document).ready(function () {
 			}
 			$.post('/api/blocklys', {solution: solution, username: gUsername}, 
 				function(data, status) {
+					console.log(data);
 					if (!data.ok) {
 						alert(data.msg);
 					}
@@ -399,57 +405,83 @@ $(document).ready(function () {
 	//Pledge Algo
 	$('#pledge-algo').on('click', function() {
 		$('#action-list').text('');
-		if (gend) {
-			$(this).text('Zurücksetzen');
-			$('#hand-algo').removeClass().addClass('disabled btn');
-			$('#tremaux-algo').removeClass().addClass('disabled btn');
-			$("#run-code").removeClass().addClass('disabled btn');
-			algoExit = false;
-			mazeGame.reset();
-			pledgeAlgo(300);	
-		} else {
+		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Pledge Algo');
 			mazeGame.reset();
 			algoExit = true;
+			$('#tremaux-algo').removeClass().addClass('btn');
+			$('#hand-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
+		} else {
+			if (gend) {
+				$(this).text('Zurücksetzen');
+				$('#hand-algo').removeClass().addClass('disabled btn');
+				$('#tremaux-algo').removeClass().addClass('disabled btn');
+				$("#run-code").removeClass().addClass('disabled btn');
+				algoExit = false;
+				mazeGame.reset();
+				pledgeAlgo(300);	
+			} else {
+				$(this).text('Pledge Algo');
+				mazeGame.reset();
+				algoExit = true;
+			}
 		}
+		
 	});
 	$('#hand-algo').on('click', function() {
 		$('#action-list').text('');
-		if (gend) {
-			$(this).text('Zurücksetzen');
-			$('#tremaux-algo').removeClass().addClass('disabled btn');
-			$('#pledge-algo').removeClass().addClass('disabled btn');
-			$("#run-code").removeClass().addClass('disabled btn');
-			algoExit = false;
-			mazeGame.reset();
-			rightHand(300);	
-		} else {
+		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Rechte-Hand Algo');
 			mazeGame.reset();
 			algoExit = true;
+			$('#tremaux-algo').removeClass().addClass('btn');
+			$('#pledge-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
+		} else {
+			if (gend) {
+				$(this).text('Zurücksetzen');
+				$('#tremaux-algo').removeClass().addClass('disabled btn');
+				$('#pledge-algo').removeClass().addClass('disabled btn');
+				$("#run-code").removeClass().addClass('disabled btn');
+				algoExit = false;
+				mazeGame.reset();
+				rightHand(300);	
+			} else {
+				$(this).text('Rechte-Hand Algo');
+				mazeGame.reset();
+				algoExit = true;
+			}
 		}
+		
 	});
-
-	var controller = new Controller(mazeGame);
 
 	$('#tremaux-algo').on('click', function() {
 		$('#action-list').text('');
 		// console.log('[end]' + controller.end);
-		if (controller.end) {
-			$(this).text('Zurücksetzen');
-			$('#hand-algo').removeClass().addClass('disabled btn');
-			$('#pledge-algo').removeClass().addClass('disabled btn');
-			$("#run-code").removeClass().addClass('disabled btn');
-			algoExit = false;
-			mazeGame.reset();
-			controller.init();
-			controller.run();
-		} else {
+		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Trémaux\'s Algo');
 			mazeGame.reset();
 			algoExit = true;
+			$('#pledge-algo').removeClass().addClass('btn');
+			$('#hand-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
+		} else {
+			if (controller.end) {
+				$(this).text('Zurücksetzen');
+				$('#hand-algo').removeClass().addClass('disabled btn');
+				$('#pledge-algo').removeClass().addClass('disabled btn');
+				$("#run-code").removeClass().addClass('disabled btn');
+				algoExit = false;
+				mazeGame.reset();
+				controller.init();
+				controller.run();
+			} else {
+				$(this).text('Trémaux\'s Algo');
+				mazeGame.reset();
+				algoExit = true;
+			}
 		}
-
 	});
 });
 
@@ -503,7 +535,6 @@ function loadSolutionOfRule(solution) {
 function loadSolutionOfBlockly(solution) {
 	workspace.clear();
 	if (solution) {
-		solution = JSON.parse(solution);
 		var xml = Blockly.Xml.textToDom(solution.code);
 		Blockly.Xml.domToWorkspace(xml, workspace);
 	}
