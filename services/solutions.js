@@ -82,7 +82,7 @@ module.exports = {
     },
 
     createSolution: async (solution, username) => {
-        var now = Date.now(), ruleIsEmpty = true;
+        var now = Date.now(), ruleIsEmpty = true, errMsg = null;
         var solu = JSON.parse(solution);
         if (!solu) {
             return JSON.stringify({ok: true, msg: 'parse solution failed'});
@@ -117,9 +117,13 @@ module.exports = {
             updatedAt: now,
             version: 0
         }).catch(function(err) {
-            return JSON.stringify({ok: false, msg: 'create solution failed.'});
+            errMsg = 'create solution failed.';
+            
         });
             
+        if (errMsg) {
+            return JSON.stringify({ok: false, msg: errMsg});
+        }
         
         for (var i = 0; i < solu.situations.length; i++) {
             var s = {
@@ -146,6 +150,7 @@ module.exports = {
             }
 
         }
+        
         return JSON.stringify({ok: true, msg: 'solution created.', res: p});
     },
 

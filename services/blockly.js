@@ -44,7 +44,7 @@ module.exports = {
     },
 
     getBlockly: async (name, username) => {
-
+        var errMsg = null;
         var user = await UserModel.findOne({
             where: {
                 name: username
@@ -60,18 +60,22 @@ module.exports = {
                 userId: user.get('id')
             }
         }).catch(function(err) {
-            return JSON.stringify({ok: false, msg: 'solution of block not found.'});
+            errMsg = 'solution of block not found.';
         });
 
-        return JSON.strinify({ok: true, msg: 'soluton of Blockly returned.', res: solution});
+        if (errMsg) {
+            return JSON.stringify({ok: false, msg: errMsg});
+        } else {
+            return JSON.stringify({ok: true, msg: 'soluton of Blockly returned.', res: solution});
+        }
     },
 
     createBlockly: async (solution, username) => {
-        var now = Date.now();
+        var now = Date.now(), errMsg = null;
         var solu = JSON.parse(solution);
         if (!solu) {
             console.log('parse solution failed.');
-            return JSON.strinify({ok: false, msg: 'parse solution failed'});
+            return JSON.stringify({ok: false, msg: 'parse solution failed'});
         }
 
         var user = await UserModel.findOne({
@@ -92,10 +96,15 @@ module.exports = {
             updatedAt: now,
             version: 0
         }).catch(function(err) {
-            return JSON.stringify({ok: false, msg: 'create solution failed.'});
+            errMsg = 'create solution of blockly failed.'
+            
         });
 
-        return JSON.strinify({ok: true, msg: 'soluton of Blockly saved.', res: p});
+        if (errMsg) {
+            return JSON.stringify({ok: false, msg: errMsg});
+        } else {
+            return JSON.stringify({ok: true, msg: 'soluton of Blockly saved.', res: p});
+        }
 
     },
 
@@ -116,6 +125,6 @@ module.exports = {
             }
         });
         solution.destory();
-        return JSON.strinify({ok: true, msg: 'soluton of Blockly deleted.', res: solution});
+        return JSON.stringify({ok: true, msg: 'soluton of Blockly deleted.', res: solution});
     }
 };
