@@ -1,4 +1,4 @@
-var gUsername;
+var gUsername, algoExit = false, taskId = 0;
 var mazeGame, workspace, moveList = [], modalIsHided = false;
 var time, timer, startTime;
 var mazeOptions = {
@@ -16,7 +16,61 @@ var mazeOptions = {
 };
 
 
+function initApi(interpreter, scope) {
+ 	var wrapper = function(id) {
+    	id = id ? id.toString() : '';
+    	return interpreter.createPrimitive(workspace.highlightBlock(id));
+	};
+	interpreter.setProperty(scope, 'highlightBlock',
+	      interpreter.createNativeFunction(wrapper));
+
+  	wrapper = function(dir) {
+    	moveDir(dir);
+  	};
+  	interpreter.setProperty(scope, 'moveDir',
+      interpreter.createNativeFunction(wrapper));
+
+   	wrapper = function() {
+    	return !mazeGame.foundExit();
+  	};
+	interpreter.setProperty(scope, 'notDone',
+	  interpreter.createNativeFunction(wrapper));
+
+	wrapper = function(dir) {
+    	return !mazeGame.getSituation()[dir];
+  	};
+	interpreter.setProperty(scope, 'isPathFree',
+	  interpreter.createNativeFunction(wrapper));
+
+	wrapper = function() {
+    	return mazeGame.getAngle();
+  	};
+	interpreter.setProperty(scope, 'getAngle',
+	  interpreter.createNativeFunction(wrapper));
+
+	wrapper = function() {
+    	return mazeGame.placeMark();
+  	};
+	interpreter.setProperty(scope, 'placeMark',
+	  interpreter.createNativeFunction(wrapper));
+
+	wrapper = function() {
+    	return mazeGame.markPlaced();
+  	};
+	interpreter.setProperty(scope, 'markPlaced',
+	  interpreter.createNativeFunction(wrapper));
+
+	wrapper = function(s) {
+    	return console.log(s);
+  	};
+	interpreter.setProperty(scope, 'log',
+	  interpreter.createNativeFunction(wrapper));
+
+}
+
 $(document).ready(function () {
+	mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
+
 	workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
   	Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
   	// For test.
@@ -25,17 +79,53 @@ $(document).ready(function () {
 	Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
 
   	$("#run-code").click(function () {
-  		mazeGame.reset();
-        var code = Blockly.JavaScript.workspaceToCode(workspace);
-        console.log(code);
-        try {
-            eval(code);
-        } catch (e) {
-            alert(e);
-        }
-    });
+  		console.log($(this).text());
+  		if ($(this).text() === 'Zurücksetzen') {
+  			algoExit = true;
+		  	mazeGame.reset();
+  			$(this).text('Programm Ausführen');
+  		} else {
+  			$(this).text('Zurücksetzen');
+  			$('#hand-algo').removeClass().addClass('disabled btn');
+			$('#tremaux-algo').removeClass().addClass('disabled btn');
+			$('#pledge-algo').removeClass().addClass('disabled btn');
+			algoExit = false;
+  			mazeGame.reset();
 
-	mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
+	        var code = Blockly.JavaScript.workspaceToCode(workspace);
+	        var myInterpreter = new Interpreter(code, initApi);
+			function nextStep() {
+				if (algoExit) {
+		  			clearTimeouts();
+		  			algoExit = false;
+		  			$('#hand-algo').removeClass().addClass('btn');
+					$('#tremaux-algo').removeClass().addClass('btn');
+					$('#pledge-algo').removeClass().addClass('btn');
+		  			return ;
+				}
+				try {
+					if (myInterpreter.step()) {
+						taskId = window.setTimeout(nextStep, 8);
+					} 
+				} catch (e) {
+					alert('eine Wand getroffen.')
+					algoExit = true;
+					clearTimeouts();
+					$('#hand-algo').removeClass().addClass('btn');
+					$('#tremaux-algo').removeClass().addClass('btn');
+					$('#pledge-algo').removeClass().addClass('btn');
+				}
+			}
+		
+			nextStep();
+  		}
+        // console.log(code);
+        // try {
+        //     eval(code);
+        // } catch (e) {
+        //     alert(e);
+        // }
+    });
 
 	$("#options form").on('submit', function () {
 		mazeOptions.level_size = [$('#w').val(), $('#h').val()];
@@ -96,7 +186,6 @@ $(document).ready(function () {
 					if (!data.ok) {
 						alert(data.msg);
 					}
-
 			});
 		} else if ($('#game-mode span').text() === 'Regel') {	//Blockly
 			var code = Blockly.Xml.workspaceToDom(workspace);
@@ -159,7 +248,7 @@ $(document).ready(function () {
 						$('#load-solution').next().append('<li><a>' + solutions[i].name + '</a></li>');
 					}
 				} else {
-					alert(data,msg);
+					alert(data.msg);
 				}
 			});
 			$('#run-solution').removeClass().addClass('btn btn-success');
@@ -225,6 +314,19 @@ $(document).ready(function () {
 		}
 	});
 
+	$('#check-angle').on('click', function() {
+		if ($(this).is(':checked')) {
+			 mazeGame.setCheckAngle(true);
+		} else {
+			mazeGame.setCheckAngle(false);
+		}
+	});
+
+	$('#clear-tables').on('click', function() {
+		$('#rule-list').html('');
+		$('#action-list').html('');
+	});
+
 	$('#new-rule').on('click', function() {
 		$('#alert-msg span').text('Stelle neue Regel.')
 		showSituation();
@@ -281,12 +383,12 @@ $(document).ready(function () {
 		mazeGame.saveCurPos();
 		do {
 			if (simulateActions(actionsText) === false) {
-				// console.log('action finished, break');
+				console.log('action finished, break');
 				break;
 			}
 			// update the rule (actions)
 			actionsText = mazeGame.getActionsOfSituation();
-			// console.log('actionsText:' + actionsText);
+			console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
 		executeActions(moveList);
@@ -296,59 +398,88 @@ $(document).ready(function () {
 
 	//Pledge Algo
 	$('#pledge-algo').on('click', function() {
+		$('#action-list').text('');
 		if (gend) {
+			$(this).text('Zurücksetzen');
+			$('#hand-algo').removeClass().addClass('disabled btn');
+			$('#tremaux-algo').removeClass().addClass('disabled btn');
+			$("#run-code").removeClass().addClass('disabled btn');
+			algoExit = false;
 			mazeGame.reset();
-			pledgeAlgoWithTimeout(300);	
+			pledgeAlgo(300);	
+		} else {
+			$(this).text('Pledge Algo');
+			mazeGame.reset();
+			algoExit = true;
 		}
 	});
 	$('#hand-algo').on('click', function() {
+		$('#action-list').text('');
 		if (gend) {
+			$(this).text('Zurücksetzen');
+			$('#tremaux-algo').removeClass().addClass('disabled btn');
+			$('#pledge-algo').removeClass().addClass('disabled btn');
+			$("#run-code").removeClass().addClass('disabled btn');
+			algoExit = false;
 			mazeGame.reset();
 			rightHand(300);	
+		} else {
+			$(this).text('Rechte-Hand Algo');
+			mazeGame.reset();
+			algoExit = true;
 		}
 	});
 
 	var controller = new Controller(mazeGame);
 
 	$('#tremaux-algo').on('click', function() {
-		console.log('[end]' + controller.end);
+		$('#action-list').text('');
+		// console.log('[end]' + controller.end);
 		if (controller.end) {
+			$(this).text('Zurücksetzen');
+			$('#hand-algo').removeClass().addClass('disabled btn');
+			$('#pledge-algo').removeClass().addClass('disabled btn');
+			$("#run-code").removeClass().addClass('disabled btn');
+			algoExit = false;
 			mazeGame.reset();
 			controller.init();
-			controller.run();	
+			controller.run();
 		} else {
-			console.log('not end...');
+			$(this).text('Trémaux\'s Algo');
+			mazeGame.reset();
+			algoExit = true;
 		}
 
 	});
 });
-$(window).on('keydown', function (e) {
-	var keyCode = e.keyCode || e.which,
-		keyCodes = {
-			37: "left",
-			38: "up",
-			39: "right",
-			40: "down"
-			// 65: "left",
-			// 87: "up",
-			// 68: "right",
-			// 83: "down"
-		};
-	if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
-		// send arrow keys and wsad to game
-		mazeGame.move(keyCodes[keyCode]);
-		if (mazeGame.foundExit()) {
-			$('#situation-modal').modal('show');
-		} else {
-			showSituation();
-		}
-		return false;
-	} else if (keyCode === 27) {
-		// close options on escape
-		$('#options').hide();
-		return false;
-	}
-});
+
+// $(window).on('keydown', function (e) {
+// 	var keyCode = e.keyCode || e.which,
+// 		keyCodes = {
+// 			37: "left",
+// 			38: "up",
+// 			39: "right",
+// 			40: "down"
+// 			// 65: "left",
+// 			// 87: "up",
+// 			// 68: "right",
+// 			// 83: "down"
+// 		};
+// 	if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
+// 		// send arrow keys and wsad to game
+// 		mazeGame.move(keyCodes[keyCode]);
+// 		if (mazeGame.foundExit()) {
+// 			$('#situation-modal').modal('show');
+// 		} else {
+// 			showSituation();
+// 		}
+// 		return false;
+// 	} else if (keyCode === 27) {
+// 		// close options on escape
+// 		$('#options').hide();
+// 		return false;
+// 	}
+// });
 
 function loadSolutionOfRule(solution) {
 	$('#rule-list').html('');
@@ -382,8 +513,6 @@ function showRule() {
 	$('#game-mode span').text('Blockly');
 	$('#mode-blockly').hide();
 	$('#mode-rule').show();
-	// $('#mode-blockly').css('visibility', 'hidden');
-	// $('#mode-rule').css('visibility', 'visible');
 }
 
 function addAction(action) {
@@ -412,11 +541,11 @@ function simulateActions(actions) {
 	}
 }
 
-function simulateMoveDir(dir) {
+function simulateMoveDir(dir, inAlgo=false) {
 
 	let forwardDir = mazeGame.getForwardDir(dir);
 
-	if (!mazeGame.simulateMove(forwardDir)) {
+	if (!mazeGame.simulateMove(forwardDir, inAlgo)) {
 		return false;
 	}
 
@@ -424,7 +553,7 @@ function simulateMoveDir(dir) {
 }
 
 
-function moveDir(dir) {
+function moveDir(dir, inAlgo=false) {
 
 	let forwardDir = mazeGame.getForwardDir(dir);
 	
@@ -433,12 +562,40 @@ function moveDir(dir) {
 		showCurrentStatus(forwardDir);
 	}
 
-	if (!mazeGame.move(forwardDir)) {
-		return false;
+	if (!mazeGame.move(forwardDir, inAlgo)) {
+		throw false;
+		// return false;
 	}
 
 	return true;
 }
+
+// function moveDir(dir, inAlgo=false) {
+// 	var d = $.Deferred();
+// 	var exit = false;
+// 	var doMove = function() {
+// 		if (!exit) {
+// 			exit = true;
+// 			let forwardDir = mazeGame.getForwardDir(dir);
+		
+// 			// show all steps if game mode is Regel.
+// 			if ($('#game-mode span').text() === 'Blockly') {
+// 				showCurrentStatus(forwardDir);
+// 			}
+
+// 			if (!mazeGame.move(forwardDir, inAlgo)) {
+// 				return false;
+// 			}
+
+// 			setTimeout(doMove, 300);
+// 		} else {
+// 			d.resolve();
+// 		}
+// 	}
+// 	doMove();
+
+// 	return d.promise();
+// }
 
 function executeActions(actions) {
 	mazeGame.restoreCurPos();
@@ -557,4 +714,11 @@ function showSteps() {
 
 function timeTick() {
 	showTime();
+}
+
+function clearTimeouts() {
+	while (taskId) {
+		clearTimeout(taskId);
+		taskId--;
+	}
 }

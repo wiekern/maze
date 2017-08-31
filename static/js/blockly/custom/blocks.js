@@ -266,27 +266,30 @@ for (let i = 0; i < blocksJson.length; i++) {
 }
 
 Blockly.JavaScript['ahead'] = function(block) {
-  var code = 'moveDir("up");';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code = 'moveDir("up");\n';
   return code;
 };
 
 Blockly.JavaScript['tillend'] = function(block) {
   var statements_tillendstatement = Blockly.JavaScript.statementToCode(block, 'tillEndStatement');
   // TODO: Assemble JavaScript into code variable.
-  var exit = 'var timeBeginn = new Date().getTime();'
-  var timeout = 'if ((new Date().getTime() - timeBeginn)/1000 > 5) break;'
-  var code = exit + 'while(!mazeGame.foundExit()) {' + statements_tillendstatement + '}';
+  var exit = 'var timeBeginn = new Date().getTime();\n'
+  var timeout = 'if ((new Date().getTime() - timeBeginn)/1000 > 5) break;\n'
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code = 'while(notDone()) {' + statements_tillendstatement + '}\n';
   return code;
 };
 
 Blockly.JavaScript['turn'] = function(block) {
   var dropdown_turnto = block.getFieldValue('turnTo');
   var code = '';
+  var light = 'highlightBlock("' + block.id + '");\n'
   if (dropdown_turnto === 'left') {
-    code = 'moveDir("left");';
+    code = 'moveDir("left");\n';
 
   } else if (dropdown_turnto === 'right'){
-    code = 'moveDir("right");';
+    code = 'moveDir("right");\n';
   }
   return code;
 };
@@ -294,7 +297,8 @@ Blockly.JavaScript['turn'] = function(block) {
 Blockly.JavaScript['unipath'] = function(block) {
   var dropdown_pathfree = block.getFieldValue('pathFree');
   var statements_unipathstatement = Blockly.JavaScript.statementToCode(block, 'uniPathStatement');
-  var code = 'if (mazeGame.getSituation()["' + dropdown_pathfree + '"] === false) {' + statements_unipathstatement + '}';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code = 'if (isPathFree("' + dropdown_pathfree + '")) {' + statements_unipathstatement + '}\n';
   return code;
 };
 
@@ -302,8 +306,9 @@ Blockly.JavaScript['bipath'] = function(block) {
   var dropdown_pathfree = block.getFieldValue('pathFree');
   var statements_ifstatement = Blockly.JavaScript.statementToCode(block, 'ifStatement');
   var statements_elsestatement = Blockly.JavaScript.statementToCode(block, 'elseStatement');
-  var ifCondition = 'if (mazeGame.getSituation()["' + dropdown_pathfree + '"] === false) {' + statements_ifstatement + '}';
-  var elseCondition = 'else {' + statements_elsestatement + '}';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var ifCondition = 'if (isPathFree("' + dropdown_pathfree + '")) {' + statements_ifstatement + '}';
+  var elseCondition = 'else {' + statements_elsestatement + '}\n';
   var code = ifCondition + elseCondition;
   return code;
 };
@@ -312,6 +317,7 @@ Blockly.JavaScript['anglecompare'] = function(block) {
   var dropdown_compare = block.getFieldValue('compare');
   var value_angle = Blockly.JavaScript.valueToCode(block, 'angle', Blockly.JavaScript.ORDER_ATOMIC);
   var code = '';
+  var light = 'highlightBlock("' + block.id + '");\n'
   if (dropdown_compare === 'more') {
     code = ' > ';
   } else if (dropdown_compare === 'less') {
@@ -331,6 +337,7 @@ Blockly.JavaScript['anglecompare'] = function(block) {
 Blockly.JavaScript['angle'] = function(block) {
   var number_anglevalue = block.getFieldValue('angleValue');
   var code = number_anglevalue + ')';
+
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, Blockly.JavaScript.ORDER_ATOMIC];
 };
@@ -338,13 +345,15 @@ Blockly.JavaScript['angle'] = function(block) {
 Blockly.JavaScript['if'] = function(block) {
   var value_ifbranch = Blockly.JavaScript.valueToCode(block, 'ifBranch', Blockly.JavaScript.ORDER_ATOMIC);
   var statements_ifstatement = Blockly.JavaScript.statementToCode(block, 'ifStatement');
-  var code = 'if (mazeGame.getAngle()' + value_ifbranch + '{' + statements_ifstatement + '}';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code = 'if (getAngle()' + value_ifbranch + '{' + statements_ifstatement + '}\n';
   return code;
 };
 
 Blockly.JavaScript['marker'] = function(block) {
   // TODO: Assemble JavaScript into code variable.
-  var code = 'mazeGame.placeMark();\n';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code = 'placeMark();\n';
   return code;
 };
 
@@ -353,7 +362,8 @@ Blockly.JavaScript['markerexists'] = function(block) {
   var statements_hasmarkstatement = Blockly.JavaScript.statementToCode(block, 'hasMarkStatement');
   var statements_nomarkstatement = Blockly.JavaScript.statementToCode(block, 'noMarkStatement');
   // TODO: Assemble JavaScript into code variable.
-  var code = 'if (mazeGame.markPlaced()) {' + statements_hasmarkstatement + '} else {' + statements_nomarkstatement  +'}\n';
+  var light = 'highlightBlock("' + block.id + '");\n'
+  var code ='if (markPlaced()) {' + statements_hasmarkstatement + '} else {' + statements_nomarkstatement  +'}\n';
   return code;
 };
 

@@ -26,7 +26,7 @@ function MazeGame(canvas, options) {
 	$(window).on('resize', center);
 	
 	var ctx, oldPos = options.starting_position, currentPos = options.starting_position, 
-		startAngle = 0, maze, path, gameInProgress, marks;
+		startAngle = 0, maze, path, gameInProgress, marks, checkAngle = false;
 	var faceTos = {
 		up: {up:"up", down: "down", left:"left", right:"right"}, //north
 		down: {up:"down", down: "up", left:"right", right:"left"},//south
@@ -55,8 +55,6 @@ function MazeGame(canvas, options) {
 		};
 	}
 
-	// var situations = Array(16),
-	// 	actionsList = Array(16);
 	var offsets = {
 		left	:	{ x: -1, y: 0 },
 		up		:	{ x: 0, y:	-1 },
@@ -81,6 +79,16 @@ function MazeGame(canvas, options) {
 		right: 	"right",
 		down : 	"down"
 	};
+
+	var positionAngles = [];
+	function initPostionAngles() {
+		for (y = 0; y < options.level_size[1]; y++) {
+			positionAngles.push(new Array());
+			for (x = 0; x < options.level_size[0]; x++) {
+				positionAngles[y].push(0);
+			}
+		}
+	}
 
 	var rand = new Rand();
 	
@@ -128,9 +136,6 @@ function MazeGame(canvas, options) {
 		this.mazeLevel = 0;
 		this.hasIsland = false;
 		this.island;
-		// this.c;
-		// this.nextC;
-		// this.stack = [];
 		this.initMaze = function () {
 			for (y = 0; y < height; y++) {
 				this.m.push(new Array());
@@ -381,6 +386,7 @@ function MazeGame(canvas, options) {
 		width = parseInt(width);
 		height = parseInt(height);
 		maze = new Maze(height, width);
+		initPostionAngles();
 		var screenWidth = $(window).width();
 		options.scale = Math.floor((screenWidth * 0.5 - (options.wall_width * (width + 1))) / width);
 		currentPos = Object.assign({}, options.starting_position);
@@ -627,6 +633,13 @@ function MazeGame(canvas, options) {
 	};
 
 	this.isSituationExisted = function() {
+		console.log()
+		if (checkAngle && turnCircle(currentPos)) {
+			setMsgType('CIRCLE');
+			console.log('break, circle');
+			return false;
+		}
+
 		let i = this.getShortSituation();
 		// console.log("situation:" + i + " " + solution.situations[i]);
 		if (solution.situations[i] === true) {
@@ -780,13 +793,24 @@ function MazeGame(canvas, options) {
 		// console.log('updateAngle:' + startAngle);
 	}
 
-	function turnCircle() {
-
-		if ((startAngle % 360 === 0) && (startAngle !== 0)) {
+	// back to same position and turn 360 grade.
+	function turnCircle(pos) {
+		var angle = startAngle - positionAngles[pos.x][pos.y];
+		console.log(angle);
+		if ((oldPos.x !== pos.x) || (oldPos.y !== pos.y)) {
+			console.log('moved.');
+			positionAngles[pos.x][pos.y] = startAngle;
+		}
+		if ((angle % 360 === 0) && (angle !== 0)) {
 			return true;
+			console.log('turn a circle at ame position.');
 		} else {
 			return false;
 		}
+	}
+
+	this.setCheckAngle = function(flag) {
+		checkAngle = flag;
 	};
 
 	this.foundExit = function() {
@@ -806,7 +830,7 @@ function MazeGame(canvas, options) {
 
 	this.getMsgType = function() {
 		return msgType;
-	}
+	};
 
 	function initMsgType() {
 		for (var p in msgType) {
@@ -832,7 +856,7 @@ function MazeGame(canvas, options) {
 		startAngle = simulateAngle;
 	};
 
-	this.simulateMove = function(direction) {
+	this.simulateMove = function(direction, inAlgo=false) {
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
 			y: currentPos.y + offsets[direction].y,
@@ -864,9 +888,10 @@ function MazeGame(canvas, options) {
 				if (curPosInMarks(currentPos)) {
 					return false;
 				}
-
-				if (turnCircle()) {
-					return false;
+				if (inAlgo) {
+					if (checkAngle && turnCircle(currentPos)) {
+						return false;
+					}	
 				}
 				return true;
 			}
@@ -874,9 +899,9 @@ function MazeGame(canvas, options) {
 	}
 
 
-	this.move = function(direction) {
+	this.move = function(direction, inAlgo=false) {
 		oldPos = Object.assign({}, currentPos);
-		console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
+		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
 		// currentPos: old postion we needed, newPos is calculated new position namely current position.
 		var newPos = {
 			x: currentPos.x + offsets[direction].x,
@@ -929,17 +954,22 @@ function MazeGame(canvas, options) {
 					return false;
 				}
 
-				if (turnCircle()) {
-					console.log('turn a circle.');
-					resetAngle();
-					setMsgType('CIRCLE');
-					return false;
+				// defined Algos
+				if (inAlgo) {
+					// console.log('inAlgo');
+					if (checkAngle && turnCircle(currentPos)) {
+						console.log('turn a circle.');
+						resetAngle();
+						setMsgType('CIRCLE');
+						return false;
+					}
 				}
+
 
 				return true;
 			}
 		}
-	}
+	};
 
 	this.moveInTremaux = function(direction, backtrack=false) {
 		oldPos = Object.assign({}, currentPos);
@@ -995,10 +1025,9 @@ function MazeGame(canvas, options) {
 		} else {
 			return false;
 		}
-	}
+	};
 
 	function manMoves(sx, sy, dx, dy, imgX, imgY) {
-	// function manMoves() {
 		//line width: 2
 		ctx.clearRect(sx, sy, options.scale - options.wall_width, options.scale - options.wall_width);
 		// console.log("manMoves" + sx + ":" + sy + "," + dx + ":" + dy);

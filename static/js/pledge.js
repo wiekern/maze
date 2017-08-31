@@ -1,98 +1,90 @@
-function pledgeAlgo() {
-	var situation, counter = 0;
-	while (!mazeGame.foundExit()) {
-		situation = mazeGame.getSituation();
-		if (counter === 0) {
-			if (situation.up === false) {
-				moveDir("up");
-			} else {
-				moveDir("right");
-				counter -= 1;
-			}
-		} else {	//along with left-hand
-			if (situation.left === false) {
-				moveDir("left");
-				counter += 1;
-				moveDir("up");
-			} else if (situation.up === false) {
-				moveDir("up");
-			} else if (situation.right === false) {
-				moveDir("right");
-				counter -= 1;
-				moveDir("up");
-			} else {
-				moveDir("right");
-				counter -= 1;
-				moveDir("right");
-				counter -= 1;
-				moveDir("up");
-			}
-		}	
-	}
-}
 
 var gsituation, gcounter = 0, gend = true;
-function pledgeAlgoWithTimeout(speed) {
+function pledgeAlgo(speed) {
+	if (algoExit) {
+		clearTimeouts();
+		gend = true;
+		algoExit = false;
+		$('#tremaux-algo').removeClass().addClass('btn');
+		$('#hand-algo').removeClass().addClass('btn');
+		$("#run-code").removeClass().addClass('btn btn-default');
+		return ;
+	}
 	if(!mazeGame.foundExit()) {
 		gend = false;
 		gsituation = mazeGame.getSituation();
 		if (gcounter === 0) {
 			if (gsituation.up === false) {
-				moveDir("up");
+				moveDir("up", true);
 			} else {
-				moveDir("right");
+				moveDir("left", true);
 				gcounter -= 1;
 			}
-		} else {	//along with left-hand
-			if (gsituation.left === false) {
-				moveDir("left");
+		} else {	//along with right-hand
+			if (gsituation.right === false) {
+				moveDir("right", true);
 				gcounter += 1;
-				moveDir("up");
+				moveDir("up", true);
 			} else if (gsituation.up === false) {
-				moveDir("up");
-			} else if (gsituation.right === false) {
-				moveDir("right");
+				moveDir("up", true);
+			} else if (gsituation.left === false) {
+				moveDir("left");
 				gcounter -= 1;
 				moveDir("up");
 			} else {
-				moveDir("right");
+				moveDir("left", true);
 				gcounter -= 1;
-				moveDir("right");
+				moveDir("left", true);
 				gcounter -= 1;
-				moveDir("up");
+				moveDir("up", true);
 			}
 		}
-		window.setTimeout(function() {
-			pledgeAlgoWithTimeout(speed);
+		id = window.setTimeout(function() {
+			pledgeAlgo(speed);
 		}, speed);	
 	} else {
+		$('#tremaux-algo').removeClass().addClass('btn');
+		$('#hand-algo').removeClass().addClass('btn');
+		$("#run-code").removeClass().addClass('btn btn-default');
 		gend = true;
 	}
 }
 
 function rightHand(speed) {
+	if (algoExit) {
+		clearTimeouts();
+		gend = true;
+		algoExit = false;
+		$('#tremaux-algo').removeClass().addClass('btn');
+		$('#pledge-algo').removeClass().addClass('btn');
+		$("#run-code").removeClass().addClass('btn btn-default');
+		return ;
+	}
 	if(!mazeGame.foundExit()) {
 		gend = false;
 		gsituation = mazeGame.getSituation();
 
 		if (gsituation.right === false) {
-			moveDir("right");
-			moveDir("up");
+			moveDir("right", true);
+			moveDir("up", true);
 		} else if (gsituation.up === false) {
-			moveDir("up");
+			moveDir("up", true);
 		} else if (gsituation.left === false) {
-			moveDir("left");
-			moveDir("up");
+			moveDir("left", true);
+			moveDir("up", true);
 		} else {
-			moveDir("left");
-			moveDir("left");
-			moveDir("up");
+			moveDir("left", true);
+			moveDir("left", true);
+			moveDir("up", true);
 		}
 	
-		window.setTimeout(function() {
-			pledgeAlgoWithTimeout(speed);
+		id = window.setTimeout(function() {
+			rightHand(speed);
 		}, speed);	
 	} else {
+		$('#tremaux-algo').removeClass().addClass('btn');
+		$('#pledge-algo').removeClass().addClass('btn');
+		$("#run-code").removeClass().addClass('btn btn-default');
 		gend = true;
 	}
 }
@@ -103,15 +95,27 @@ function Controller(walker) {
 		this.algorithm = new TremauxAlgo(walker);
 	};
 	this.run = function() {
+		if (algoExit) {
+			clearTimeouts();
+			this.end = true;
+			algoExit = false;
+			$('#pledge-algo').removeClass().addClass('btn');
+			$('#hand-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
+			return ;
+		}
 		if (!this.algorithm.isDone()) {
 			this.end = false;
 			this.algorithm.step();
 			
 			var that = this;
-			window.setTimeout(function() {
+			id = window.setTimeout(function() {
 				that.run();
 			}, 100);
 		} else {
+			$('#hand-algo').removeClass().addClass('btn');
+			$('#pledge-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
 			this.end = true;
 		}
 	};
@@ -183,3 +187,5 @@ function TremauxAlgo(walker) {
 		}
 	};
 }
+
+
