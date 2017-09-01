@@ -26,7 +26,7 @@ function MazeGame(canvas, options) {
 	$(window).on('resize', center);
 	
 	var ctx, oldPos = options.starting_position, currentPos = options.starting_position, 
-		startAngle = 0, maze, path, gameInProgress, marks, checkAngle = false;
+		startAngle = 0, maze, path, gameInProgress, marks, checkAngle = true;
 	var faceTos = {
 		up: {up:"up", down: "down", left:"left", right:"right"}, //north
 		down: {up:"down", down: "up", left:"right", right:"left"},//south
@@ -633,10 +633,10 @@ function MazeGame(canvas, options) {
 	};
 
 	this.isSituationExisted = function() {
-		console.log()
-		if (checkAngle && turnCircle(currentPos)) {
+		if (checkAngle && turnCircle(currentPos)) {			
 			setMsgType('CIRCLE');
 			console.log('break, circle');
+			console.log()
 			return false;
 		}
 
@@ -911,7 +911,9 @@ function MazeGame(canvas, options) {
 
 		// if (gameInProgress && maze.inBounds(newPos.x, newPos.y)) {
 		if (gameInProgress) {
-			initMsgType();
+			if (inAlgo) {
+				initMsgType();
+			}
 			if (currentPos.dir === direction) {
 				if (maze.getCell(currentPos.x, currentPos.y)[direction] === false) {
 					path.push(newPos);

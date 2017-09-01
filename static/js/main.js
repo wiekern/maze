@@ -320,13 +320,13 @@ $(document).ready(function () {
 		}
 	});
 
-	$('#check-angle').on('click', function() {
-		if ($(this).is(':checked')) {
-			 mazeGame.setCheckAngle(true);
-		} else {
-			mazeGame.setCheckAngle(false);
-		}
-	});
+	// $('#check-angle').on('click', function() {
+	// 	if ($(this).is(':checked')) {
+	// 		 mazeGame.setCheckAngle(true);
+	// 	} else {
+	// 		mazeGame.setCheckAngle(false);
+	// 	}
+	// });
 
 	$('#clear-tables').on('click', function() {
 		$('#rule-list').html('');
@@ -485,33 +485,33 @@ $(document).ready(function () {
 	});
 });
 
-// $(window).on('keydown', function (e) {
-// 	var keyCode = e.keyCode || e.which,
-// 		keyCodes = {
-// 			37: "left",
-// 			38: "up",
-// 			39: "right",
-// 			40: "down"
-// 			// 65: "left",
-// 			// 87: "up",
-// 			// 68: "right",
-// 			// 83: "down"
-// 		};
-// 	if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
-// 		// send arrow keys and wsad to game
-// 		mazeGame.move(keyCodes[keyCode]);
-// 		if (mazeGame.foundExit()) {
-// 			$('#situation-modal').modal('show');
-// 		} else {
-// 			showSituation();
-// 		}
-// 		return false;
-// 	} else if (keyCode === 27) {
-// 		// close options on escape
-// 		$('#options').hide();
-// 		return false;
-// 	}
-// });
+$(window).on('keydown', function (e) {
+	var keyCode = e.keyCode || e.which,
+		keyCodes = {
+			37: "left",
+			38: "up",
+			39: "right",
+			40: "down"
+			// 65: "left",
+			// 87: "up",
+			// 68: "right",
+			// 83: "down"
+		};
+	if (keyCodes[keyCode] !== null && keyCodes[keyCode] !== undefined) {
+		// send arrow keys and wsad to game
+		mazeGame.move(keyCodes[keyCode]);
+		if (mazeGame.foundExit()) {
+			$('#situation-modal').modal('show');
+		} else {
+			showSituation();
+		}
+		return false;
+	} else if (keyCode === 27) {
+		// close options on escape
+		$('#options').hide();
+		return false;
+	}
+});
 
 function loadSolutionOfRule(solution) {
 	$('#rule-list').html('');
