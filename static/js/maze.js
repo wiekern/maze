@@ -85,9 +85,10 @@ function MazeGame(canvas, options) {
 		for (y = 0; y < options.level_size[1]; y++) {
 			positionAngles.push(new Array());
 			for (x = 0; x < options.level_size[0]; x++) {
-				positionAngles[y].push(0);
+				positionAngles[y].push({angle: 0, visited: false});
 			}
 		}
+		positionAngles[0][0].visited = true;
 	}
 
 	var rand = new Rand();
@@ -599,23 +600,6 @@ function MazeGame(canvas, options) {
 		}
 	};
 
-	// this.curPosInPath = function() {
-	// 	for (var i = path.length - 1; i >= 0; i--) {
-	// 		console.log(path[i]);
-	// 	}
-
-	// 	if (path.length <= 1) {
-	// 		return false;
-	// 	}
-
-	// 	for (var i = 0; i < path.length - 1; i++) {
-	// 		if (path[i].x === currentPos.x && path[i].y === currentPos.y) {
-	// 			return true;
-	// 		}
-	// 	}
-	// 	return false;
-	// };
-
 	this.storeActions = function(actions) {
 		let i = this.getShortSituation();
 		// console.log('[storeActions]' + i + ' ' + actions);
@@ -633,10 +617,10 @@ function MazeGame(canvas, options) {
 	};
 
 	this.isSituationExisted = function() {
-		if (checkAngle && turnCircle(currentPos)) {			
+		initMsgType();
+		if (checkAngle && simulateTurnCircle(currentPos)) {			
 			setMsgType('CIRCLE');
 			console.log('break, circle');
-			console.log()
 			return false;
 		}
 
@@ -731,8 +715,10 @@ function MazeGame(canvas, options) {
 		}
 	};
 
+	var turnDir = "up";
 	this.getForwardDir = function (turnTo) {
-		updateAngle(turnTo);
+		simulateUpdateAngle(turnTo);
+		turnDir = turnTo;
 		let f = faceTos[currentPos.dir];
 		return f[turnTo];
 	};
@@ -787,23 +773,46 @@ function MazeGame(canvas, options) {
 
 	function updateAngle(direction) {
 		if (direction === "left" || direction === "right") {
-			// console.log(direction + ":" + rotatedAngle[direction]);
 			startAngle = startAngle + rotatedAngle[direction];
 		}
-		// console.log('updateAngle:' + startAngle);
+	}
+
+	function simulateUpdateAngle(direction) {
+		if (direction === "left" || direction === "right") {
+			simulateAngle = simulateAngle + rotatedAngle[direction];
+		}
 	}
 
 	// back to same position and turn 360 grade.
 	function turnCircle(pos) {
-		var angle = startAngle - positionAngles[pos.x][pos.y];
-		console.log(angle);
-		if ((oldPos.x !== pos.x) || (oldPos.y !== pos.y)) {
-			console.log('moved.');
-			positionAngles[pos.x][pos.y] = startAngle;
+		// console.log('normal:' + pos.x + ' ' + pos.y + ' ' + positionAngles[pos.x][pos.y].visited);
+		if (!positionAngles[pos.x][pos.y].visited) {
+			return false;
 		}
+
+		var angle = startAngle - positionAngles[pos.x][pos.y].angle;
+		// console.log('normal: ' + startAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
 		if ((angle % 360 === 0) && (angle !== 0)) {
-			return true;
 			console.log('turn a circle at ame position.');
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	function simulateTurnCircle(pos) {
+		// console.log('simulate:' + pos.x + ' ' + pos.y);
+		// console.log( positionAngles[pos.x][pos.y]);
+		if (!positionAngles[pos.x][pos.y].visited) {
+			return false;
+		}
+
+		var angle = simulateAngle - positionAngles[pos.x][pos.y].angle;
+		// console.log('simulate angle:' + simulateAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
+		if ((angle % 360 === 0) && (angle !== 0)) {
+			simulateAngle %= 360;
+			console.log('simulate: turn a circle at ame position.');
+			return true;
 		} else {
 			return false;
 		}
@@ -845,15 +854,15 @@ function MazeGame(canvas, options) {
 		msgType[type] = true;
 	}
 
-	var simulateCurPos, simulateAngle;
+	var simulateCurPos, simulateAngle = 0;
 	this.saveCurPos = function() {
 		simulateCurPos = Object.assign({}, currentPos);
-		simulateAngle = startAngle;
+		// simulateAngle = startAngle;
 	};
 
 	this.restoreCurPos = function() {
 		currentPos = Object.assign({}, simulateCurPos);
-		startAngle = simulateAngle;
+		// startAngle = simulateAngle;
 	};
 
 	this.simulateMove = function(direction, inAlgo=false) {
@@ -874,7 +883,11 @@ function MazeGame(canvas, options) {
 						return false;
 					}
 
-					return true;
+					simulateAngle = simulateAngle % 360;
+					// console.log('simulate moved.' + simulateAngle);
+					positionAngles[oldPos.x][oldPos.y].angle = simulateAngle;
+					positionAngles[currentPos.x][currentPos.y].angle = simulateAngle;
+					// consolelog(positionAngles[oldPos.x][oldPos.y]);
 				} else {
 
 					return false;
@@ -888,13 +901,15 @@ function MazeGame(canvas, options) {
 				if (curPosInMarks(currentPos)) {
 					return false;
 				}
-				if (inAlgo) {
-					if (checkAngle && turnCircle(currentPos)) {
-						return false;
-					}	
-				}
-				return true;
+				
+				if (checkAngle && simulateTurnCircle(currentPos)) {
+					simulateAngle = simulateAngle % 360;
+					return false;
+				}	
+				
 			}
+			positionAngles[currentPos.x][currentPos.y].visited = true;
+			return true;
 		}
 	}
 
@@ -933,13 +948,20 @@ function MazeGame(canvas, options) {
 						return false;
 					}
 
-					return true;
+
+					startAngle = startAngle % 360;
+					// console.log('moved.' + startAngle);
+					// console.log(positionAngles[oldPos.x][oldPos.y]);
+					positionAngles[oldPos.x][oldPos.y].angle = startAngle;
+					positionAngles[currentPos.x][currentPos.y].angle = startAngle;
+				
 				} else {
 					setMsgType('WALL');
 					console.log("meet a wall.");
 					return false;
 				}
 			} else {
+				updateAngle(turnDir);
 				currentPos.dir = direction;
 				// console.log('adjust direction from ' + oldPos.dir + ' to ' + currentPos.dir + ' at the same postion.');
 				draw();
@@ -956,20 +978,16 @@ function MazeGame(canvas, options) {
 					return false;
 				}
 
-				// defined Algos
-				if (inAlgo) {
-					// console.log('inAlgo');
-					if (checkAngle && turnCircle(currentPos)) {
-						console.log('turn a circle.');
-						resetAngle();
-						setMsgType('CIRCLE');
-						return false;
-					}
-				}
-
-
-				return true;
 			}
+			if (checkAngle && turnCircle(currentPos)) {
+				console.log('turn a circle at same position.');
+				startAngle = startAngle % 360;
+				setMsgType('CIRCLE');
+				return false;
+			}
+			positionAngles[currentPos.x][currentPos.y].visited = true;
+			
+			return true;
 		}
 	};
 
@@ -1196,6 +1214,9 @@ function MazeGame(canvas, options) {
 		path = [];
 		path.push(currentPos);
 		marks = [];
+		initPostionAngles();
+		initMsgType();
+		startAngle = 0, simulateAngle = 0;
 
 		center();
 

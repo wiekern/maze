@@ -25,7 +25,7 @@ function initApi(interpreter, scope) {
 	      interpreter.createNativeFunction(wrapper));
 
   	wrapper = function(dir) {
-    	moveDir(dir);
+    	moveDir(dir, true);
   	};
   	interpreter.setProperty(scope, 'moveDir',
       interpreter.createNativeFunction(wrapper));
@@ -109,7 +109,14 @@ $(document).ready(function () {
 						taskId = window.setTimeout(nextStep, 8);
 					} 
 				} catch (e) {
-					alert('eine Wand getroffen.')
+					// alert('eine Wand getroffen.')
+					if (mazeGame.getMsgType().WALL) {
+						alert('Treffe eine Wand, bewege nicht weiter.');
+					} else if (mazeGame.getMsgType().MARK) {
+						alert('Marker liegt vor.');
+					} else if (mazeGame.getMsgType().CIRCLE) {
+						alert('Drehe sich um 360 Grad.');
+					} 
 					algoExit = true;
 					clearTimeouts();
 					$('#hand-algo').removeClass().addClass('btn');
@@ -296,6 +303,7 @@ $(document).ready(function () {
 		mazeGame.reset();
 		if ($('#game-mode span').text() === 'Blockly') {
 			$('#action-list').text('');
+			$('#rule-list').text('');
 
 			let actionsText = mazeGame.getActionsOfSituation();
 			mazeGame.saveCurPos();
@@ -405,6 +413,7 @@ $(document).ready(function () {
 	//Pledge Algo
 	$('#pledge-algo').on('click', function() {
 		$('#action-list').text('');
+		$('#rule-list').text('');
 		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Pledge Algo');
 			mazeGame.reset();
@@ -431,6 +440,7 @@ $(document).ready(function () {
 	});
 	$('#hand-algo').on('click', function() {
 		$('#action-list').text('');
+		$('#rule-list').text('');
 		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Rechte-Hand Algo');
 			mazeGame.reset();
@@ -458,6 +468,7 @@ $(document).ready(function () {
 
 	$('#tremaux-algo').on('click', function() {
 		$('#action-list').text('');
+		$('#rule-list').text('');
 		// console.log('[end]' + controller.end);
 		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Trémaux\'s Algo');
@@ -595,87 +606,67 @@ function moveDir(dir, inAlgo=false) {
 
 	if (!mazeGame.move(forwardDir, inAlgo)) {
 		throw false;
-		// return false;
 	}
 
 	return true;
 }
-
-// function moveDir(dir, inAlgo=false) {
-// 	var d = $.Deferred();
-// 	var exit = false;
-// 	var doMove = function() {
-// 		if (!exit) {
-// 			exit = true;
-// 			let forwardDir = mazeGame.getForwardDir(dir);
-		
-// 			// show all steps if game mode is Regel.
-// 			if ($('#game-mode span').text() === 'Blockly') {
-// 				showCurrentStatus(forwardDir);
-// 			}
-
-// 			if (!mazeGame.move(forwardDir, inAlgo)) {
-// 				return false;
-// 			}
-
-// 			setTimeout(doMove, 300);
-// 		} else {
-// 			d.resolve();
-// 		}
-// 	}
-// 	doMove();
-
-// 	return d.promise();
-// }
 
 function executeActions(actions) {
 	mazeGame.restoreCurPos();
 	let i = 0,len = actions.length;
 	var wrapperMoveDir = function() {
 		setTimeout(function() {
-			moveDir(actions[i++]);
+			try{
+				moveDir(actions[i++]);
+			} catch (e) {
+				initModal();
+			}
 			if (i < len) {
 				wrapperMoveDir();
 			} else {
-				moveList = [];
-				if (!mazeGame.foundExit()) {
-					console.log(mazeGame.getMsgType());
-					if (!modalIsHided) {
-						$('#situation-modal').off('hidden.bs.modal').one('hidden.bs.modal', function (e) {
-							if (mazeGame.getMsgType().WALL) {
-								$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
-							} else if (mazeGame.getMsgType().MARK) {
-								$('#alert-msg span').text('Marker liegt vor.');
-							} else if (mazeGame.getMsgType().CIRCLE) {
-								$('#alert-msg span').text('Drehe sich um 360 Grad.');
-							} else {
-								$('#alert-msg span').text('Treffe eine neue Situation.');
-							}
-							showSituation();
-						});
-					} else {
-						modalIsHided = false;
-						if (mazeGame.getMsgType().WALL) {
-							$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
-						} else if (mazeGame.getMsgType().MARK) {
-							$('#alert-msg span').text('Marker liegt vor.');
-						} else if (mazeGame.getMsgType().CIRCLE) {
-							$('#alert-msg span').text('Drehe sich um 360 Grad.');
-						} else {
-							$('#alert-msg span').text('Treffe eine neue Situation.');
-						}
-						showSituation();
-					}
-				} else {
-					$('#situation-modal').modal('hide');
-					center($("#options").show());
-				}
+				initModal();
 			}
 
 			
 		}, 200);
 	};
 	wrapperMoveDir();
+}
+
+function initModal() {
+	moveList = [];
+	if (!mazeGame.foundExit()) {
+		console.log(mazeGame.getMsgType());
+		if (!modalIsHided) {
+			$('#situation-modal').off('hidden.bs.modal').one('hidden.bs.modal', function (e) {
+				if (mazeGame.getMsgType().WALL) {
+					$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
+				} else if (mazeGame.getMsgType().MARK) {
+					$('#alert-msg span').text('Marker liegt vor.');
+				} else if (mazeGame.getMsgType().CIRCLE) {
+					$('#alert-msg span').text('Drehe sich um 360 Grad.');
+				} else {
+					$('#alert-msg span').text('Treffe eine neue Situation.');
+				}
+				showSituation();
+			});
+		} else {
+			modalIsHided = false;
+			if (mazeGame.getMsgType().WALL) {
+				$('#alert-msg span').text('Treffe eine Wand, bewege nicht weiter.');
+			} else if (mazeGame.getMsgType().MARK) {
+				$('#alert-msg span').text('Marker liegt vor.');
+			} else if (mazeGame.getMsgType().CIRCLE) {
+				$('#alert-msg span').text('Drehe sich um 360 Grad.');
+			} else {
+				$('#alert-msg span').text('Treffe eine neue Situation.');
+			}
+			showSituation();
+		}
+	} else {
+		$('#situation-modal').modal('hide');
+		center($("#options").show());
+	}
 }
 
 function showCurrentStatus(forwardDir) {
