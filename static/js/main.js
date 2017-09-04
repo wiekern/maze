@@ -80,7 +80,6 @@ $(document).ready(function () {
 	Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
 
   	$("#run-code").click(function () {
-  		console.log($(this).text());
   		if ($(this).text() === 'Zurücksetzen') {
   			algoExit = true;
 		  	mazeGame.reset();
@@ -90,6 +89,7 @@ $(document).ready(function () {
   			$('#hand-algo').removeClass().addClass('disabled btn');
 			$('#tremaux-algo').removeClass().addClass('disabled btn');
 			$('#pledge-algo').removeClass().addClass('disabled btn');
+			$('#game-mode').removeClass().addClass('disabled btn navbar-btn');
 			algoExit = false;
   			mazeGame.reset();
 
@@ -102,6 +102,7 @@ $(document).ready(function () {
 		  			$('#hand-algo').removeClass().addClass('btn');
 					$('#tremaux-algo').removeClass().addClass('btn');
 					$('#pledge-algo').removeClass().addClass('btn');
+					$('#game-mode').removeClass().addClass('btn navbar-btn navbar-link');
 		  			return ;
 				}
 				try {
@@ -210,7 +211,7 @@ $(document).ready(function () {
 			}
 			$.post('/api/blocklys', {solution: solution, username: gUsername}, 
 				function(data, status) {
-					console.log(data);
+					// console.log(data);
 					if (!data.ok) {
 						alert(data.msg);
 					}
@@ -397,12 +398,12 @@ $(document).ready(function () {
 		mazeGame.saveCurPos();
 		do {
 			if (simulateActions(actionsText) === false) {
-				console.log('action finished, break');
+				// console.log('action finished, break');
 				break;
 			}
 			// update the rule (actions)
 			actionsText = mazeGame.getActionsOfSituation();
-			console.log('actionsText:' + actionsText);
+			// console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
 		executeActions(moveList);
@@ -421,12 +422,14 @@ $(document).ready(function () {
 			$('#tremaux-algo').removeClass().addClass('btn');
 			$('#hand-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
+			$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
 		} else {
 			if (gend) {
 				$(this).text('Zurücksetzen');
 				$('#hand-algo').removeClass().addClass('disabled btn');
 				$('#tremaux-algo').removeClass().addClass('disabled btn');
 				$("#run-code").removeClass().addClass('disabled btn');
+				$("#game-mode").removeClass().addClass('disabled btn navbar-btn');
 				algoExit = false;
 				mazeGame.reset();
 				pledgeAlgo(300);	
@@ -448,12 +451,14 @@ $(document).ready(function () {
 			$('#tremaux-algo').removeClass().addClass('btn');
 			$('#pledge-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
+			$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
 		} else {
 			if (gend) {
 				$(this).text('Zurücksetzen');
 				$('#tremaux-algo').removeClass().addClass('disabled btn');
 				$('#pledge-algo').removeClass().addClass('disabled btn');
 				$("#run-code").removeClass().addClass('disabled btn');
+				$("#game-mode").removeClass().addClass('disabled btn navbar-btn');
 				algoExit = false;
 				mazeGame.reset();
 				rightHand(300);	
@@ -477,12 +482,14 @@ $(document).ready(function () {
 			$('#pledge-algo').removeClass().addClass('btn');
 			$('#hand-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
+			$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
 		} else {
 			if (controller.end) {
 				$(this).text('Zurücksetzen');
 				$('#hand-algo').removeClass().addClass('disabled btn');
 				$('#pledge-algo').removeClass().addClass('disabled btn');
 				$("#run-code").removeClass().addClass('disabled btn');
+				$("#game-mode").removeClass().addClass('disabled btn navbar-btn');
 				algoExit = false;
 				mazeGame.reset();
 				controller.init();
@@ -523,6 +530,23 @@ $(window).on('keydown', function (e) {
 		return false;
 	}
 });
+
+// function initGUI() {
+// 	mazeGame.reset();
+// 	algoExit = false;
+// 	gend = true;
+// 	clearTimeouts();
+// 	$('#action-list').text('');
+// 	$('#rule-list').text('');
+// 	$('#hand-algo').text('Rechte-Hand Algo');
+// 	$('#pledge-algo').text('Pledge Algo');
+// 	$('#tremaux-algo').text('Trémaux Algo');
+// 	$('#hand-algo').removeClass().addClass('btn');
+// 	$('#pledge-algo').removeClass().addClass('btn');
+// 	$('#tremaux-algo').removeClass().addClass('btn');
+// 	$("#run-code").removeClass().addClass('btn btn-default');
+
+// }
 
 function loadSolutionOfRule(solution) {
 	$('#rule-list').html('');
@@ -636,7 +660,7 @@ function executeActions(actions) {
 function initModal() {
 	moveList = [];
 	if (!mazeGame.foundExit()) {
-		console.log(mazeGame.getMsgType());
+		// console.log(mazeGame.getMsgType());
 		if (!modalIsHided) {
 			$('#situation-modal').off('hidden.bs.modal').one('hidden.bs.modal', function (e) {
 				if (mazeGame.getMsgType().WALL) {
