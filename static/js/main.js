@@ -84,6 +84,10 @@ $(document).ready(function () {
   			algoExit = true;
 		  	mazeGame.reset();
   			$(this).text('Programm Ausführen');
+  			$('#hand-algo').removeClass().addClass('btn');
+			$('#tremaux-algo').removeClass().addClass('btn');
+			$('#pledge-algo').removeClass().addClass('btn');
+			$('#game-mode').removeClass().addClass('btn navbar-btn navbar-link');
   		} else {
   			$(this).text('Zurücksetzen');
   			$('#hand-algo').removeClass().addClass('disabled btn');
@@ -280,6 +284,7 @@ $(document).ready(function () {
 			$.get('/api/solutions/'+$(this).text(), {username: gUsername}, 
 			function(data) {
 				if (data.ok) {
+					// console.log(data.res);
 					var solutionObj = mazeGame.updateSolutionObj(data.res);
 					// console.log(solutionObj);
 					loadSolutionOfRule(solutionObj);			
@@ -304,9 +309,13 @@ $(document).ready(function () {
 		mazeGame.reset();
 		if ($('#game-mode span').text() === 'Blockly') {
 			$('#action-list').text('');
-			$('#rule-list').text('');
+			// $('#rule-list').text('');
 
 			let actionsText = mazeGame.getActionsOfSituation();
+			// console.log('actionsText:' + actionsText)
+			if (!actionsText) {
+				alert('no rule for this situation.');
+			}
 			mazeGame.saveCurPos();
 			do {
 				if (simulateActions(actionsText) === false) {
@@ -317,16 +326,17 @@ $(document).ready(function () {
 			} while (mazeGame.isSituationExisted());
 
 			executeActions(moveList);
-
-		} else if ($('#game-mode span').text() === 'Regel') {
-	        var code = Blockly.JavaScript.workspaceToCode(workspace);
-	        console.log(code);
-	        try {
-	            eval(code);
-	        } catch (e) {
-	            alert(e);
-	        }
 		}
+
+		// } else if ($('#game-mode span').text() === 'Regel') {
+	 //        var code = Blockly.JavaScript.workspaceToCode(workspace);
+	 //        console.log(code);
+	 //        try {
+	 //            eval(code);
+	 //        } catch (e) {
+	 //            alert(e);
+	 //        }
+		// }
 	});
 
 	// $('#check-angle').on('click', function() {
@@ -340,6 +350,8 @@ $(document).ready(function () {
 	$('#clear-tables').on('click', function() {
 		$('#rule-list').html('');
 		$('#action-list').html('');
+		mazeGame.resetSolution();
+		$('#run-solution').prop("disabled",true);
 	});
 
 	$('#new-rule').on('click', function() {
@@ -550,6 +562,7 @@ $(window).on('keydown', function (e) {
 
 function loadSolutionOfRule(solution) {
 	$('#rule-list').html('');
+	$('#run-solution').prop("disabled", false);
 	if (solution) {
 		for (var i = 0; i < solution.situations.length; i++) {
 			let situation = solution.situations[i];

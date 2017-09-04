@@ -55,6 +55,10 @@ function MazeGame(canvas, options) {
 		};
 	}
 
+	this.resetSolution = function() {
+		initSolution();
+	};
+
 	var offsets = {
 		left	:	{ x: -1, y: 0 },
 		up		:	{ x: 0, y:	-1 },
@@ -122,6 +126,10 @@ function MazeGame(canvas, options) {
 		};
 	}
 	
+	/* Generate the maze using recursive backtracking.
+	 * Returns a 2D array of Cells
+	 * https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
+	 */
 	function Maze(width, height) {
 		this.m = [];
 		this.visited = [];
@@ -498,7 +506,7 @@ function MazeGame(canvas, options) {
 		return false;	
 	}
 
-	function isCrossPos(pos) {
+	function isJunction(pos) {
 		// console.log("isCrossPos" + pos.dir + faceTos);
 		let cell = maze.getCell(pos.x, pos.y),
 			f = faceTos[pos.dir],
@@ -506,14 +514,11 @@ function MazeGame(canvas, options) {
 		if (!cell[f.up]) {
 			exits += 1;
 		}
-		if (!cell[f.left]) {
-			exits += 1;
-		}
-		if (!cell[f.right]) {
+		if (!cell[f.left] || !cell[f.right]) {
 			exits += 1;
 		}
 
-		if (exits == 3) {
+		if (exits >= 2) {
 			// console.log("cross pos: true")
 			return true;
 		} else {
@@ -528,7 +533,6 @@ function MazeGame(canvas, options) {
 		}
 		solution.name = name;
 		var jsonData = JSON.stringify(solution);
-		// console.log(jsonData);
 		return jsonData;
 	};
 
@@ -602,8 +606,9 @@ function MazeGame(canvas, options) {
 
 	this.storeActions = function(actions) {
 		let i = this.getShortSituation();
-		// console.log('[storeActions]' + i + ' ' + actions);
 		solution.actionsList[i] = actions;
+		// console.log('[storeActions]' + i + ' ' + solution.actionsList[i]);
+
 	}
 
 	this.setSituation = function(b) {
@@ -618,7 +623,7 @@ function MazeGame(canvas, options) {
 
 	this.isSituationExisted = function() {
 		initMsgType();
-		if (checkAngle && simulateTurnCircle(currentPos)) {			
+		if (checkAngle && simulateTurnCircle(currentPos, false)) {			
 			setMsgType('CIRCLE');
 			console.log('break, circle');
 			return false;
@@ -660,9 +665,23 @@ function MazeGame(canvas, options) {
 		return s;
 	};
 
+	this.getSituation = function() {
+		let cell = maze.getCell(currentPos.x, currentPos.y),
+			faceTo = faceTos[currentPos.dir];
+
+		var res = {
+			up: cell[faceTo["up"]],
+			down: cell[faceTo["down"]],
+			left: cell[faceTo["left"]],
+			right: cell[faceTo["right"]]
+		};
+		return res;
+	};
+
 	this.getShortSituation = function(tmp) {
 		let s = tmp || this.getSituation(),
 			shortSituation = 0x0;
+
 		if (s.up == true) {
 			 shortSituation += 1 << 3;
 		} 
@@ -687,18 +706,6 @@ function MazeGame(canvas, options) {
 			up: cell[faceTo["up"]] === true? "Belgt":"Frei",
 			left: cell[faceTo["left"]] === true? "Belegt":"Frei",
 			right: cell[faceTo["right"]] === true? "Belegt":"Frei"
-		};
-	};
-
-	this.getSituation = function() {
-		let cell = maze.getCell(currentPos.x, currentPos.y),
-			faceTo = faceTos[currentPos.dir];
-
-		return {
-			up: cell[faceTo["up"]],
-			down: cell[faceTo["down"]],
-			left: cell[faceTo["left"]],
-			right: cell[faceTo["right"]]
 		};
 	};
 
@@ -800,7 +807,7 @@ function MazeGame(canvas, options) {
 		}
 	}
 
-	function simulateTurnCircle(pos) {
+	function simulateTurnCircle(pos, isTurned) {
 		// console.log('simulate:' + pos.x + ' ' + pos.y);
 		// console.log( positionAngles[pos.x][pos.y]);
 		if (!positionAngles[pos.x][pos.y].visited) {
@@ -808,8 +815,9 @@ function MazeGame(canvas, options) {
 		}
 
 		var angle = simulateAngle - positionAngles[pos.x][pos.y].angle;
+		// console.log( positionAngles[pos.x][pos.y] + ' ' + angle);
 		// console.log('simulate angle:' + simulateAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
-		if ((angle % 360 === 0) && (angle !== 0)) {
+		if ((angle % 360 === 0) && (!isTurned || (angle !== 0))) {
 			simulateAngle %= 360;
 			console.log('simulate: turn a circle at ame position.');
 			return true;
@@ -902,7 +910,7 @@ function MazeGame(canvas, options) {
 					return false;
 				}
 				
-				if (checkAngle && simulateTurnCircle(currentPos)) {
+				if (checkAngle && simulateTurnCircle(currentPos, true)) {
 					simulateAngle = simulateAngle % 360;
 					return false;
 				}	
