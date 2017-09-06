@@ -76,9 +76,6 @@ fieldset {
 	opacity: 0.8;
 }
 
-.btn-transparent {
-}
-
 ul {
 	padding-left: 0;
 }
@@ -146,4 +143,7 @@ ul {
   align-items: center;
 }
 
+.popover {
+    z-index: 1060;
+}
 
