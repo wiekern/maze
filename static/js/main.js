@@ -161,6 +161,9 @@ $(document).ready(function () {
 		return false;
 	});
 
+	$('[data-toggle="popover"]').popover();
+	initJokerEvent();
+
 	$('#game-mode span').on('click', function() {
 		var game_mode = $(this).text();
 		if (game_mode === 'Blockly') {
@@ -309,7 +312,6 @@ $(document).ready(function () {
 		mazeGame.reset();
 		if ($('#game-mode span').text() === 'Blockly') {
 			$('#action-list').text('');
-			// $('#rule-list').text('');
 
 			let actionsText = mazeGame.getActionsOfSituation();
 			// console.log('actionsText:' + actionsText)
@@ -339,14 +341,6 @@ $(document).ready(function () {
 		// }
 	});
 
-	// $('#check-angle').on('click', function() {
-	// 	if ($(this).is(':checked')) {
-	// 		 mazeGame.setCheckAngle(true);
-	// 	} else {
-	// 		mazeGame.setCheckAngle(false);
-	// 	}
-	// });
-
 	$('#clear-tables').on('click', function() {
 		$('#rule-list').html('');
 		$('#action-list').html('');
@@ -360,6 +354,7 @@ $(document).ready(function () {
 	});
 
 	$('#rule-list').delegate('a', 'click', function() {
+		console.log($(this).attr('name'));
 		mazeGame.removeRule($(this).attr('name'));
 		$(this).parent().parent().remove();
 	});
@@ -369,8 +364,22 @@ $(document).ready(function () {
 		$(this).parent().remove();
 	});
 
-	$('#place-mark').on('click', function() {
-		mazeGame.placeMark();
+	// $('#place-mark').on('click', function() {
+	// 	mazeGame.placeMark();
+	// 	showSituation();
+	// });
+
+	$('#mymark').on('click', function() {
+		var str = $(this).text();
+		if (str === "Marker") {
+			mazeGame.removeMark();
+			$(this).text('Kein Marker');
+			showSituation();
+		} else {
+			mazeGame.placeMark();
+			$(this).text('Marker');
+			showSituation();
+		}
 	});
 
 	$('#go-forward').on('click', function(){
@@ -384,21 +393,34 @@ $(document).ready(function () {
 	});
 
 	$('#execute-action').on('click', function() {
-		let actionsText = $('#actions').val();
+		let actionsText = $('#actions').val(), 
+			rule = {
+				up: $('#myup').text(), 
+				left: $('#myleft').text(),
+				right: $('#myright').text(),
+				actions: $('#actions').val()
+			};
+		console.log(rule);
 		if (!actionsText) {
 			return;
 		}
 		$('#actions').val('');
 		// 1. store rule
-		mazeGame.setSituation(true);
-		mazeGame.storeActions(actionsText);
+		mazeGame.setSituation(true, actionsText);
+		// mazeGame.storeActions(actionsText);
 		// 2. show rule
-		let situation = mazeGame.getLongSituation();
-		$('#rule-list').append('<tr><td>' + situation.up + '</td>' 
-			 + '<td>'+ situation.left + '</td>'
-			 + '<td>' + situation.right + '</td>' 
-			 + '<td>' + mazeGame.getActionsOfSituation() 
-			 + '<a class="badge" name="' + mazeGame.getShortSituation() 
+		// let situation = mazeGame.getLongSituation();
+		// $('#rule-list').append('<tr><td>' + situation.up + '</td>' 
+		// 	 + '<td>'+ situation.left + '</td>'
+		// 	 + '<td>' + situation.right + '</td>' 
+		// 	 + '<td>' + mazeGame.getActionsOfSituation() 
+		// 	 + '<a class="badge" name="' + mazeGame.getShortSituation() 
+		// 	 + '" style="float: right">' + '&times;</a></td></tr>');
+		$('#rule-list').append('<tr><td>' + rule.up + '</td>' 
+			 + '<td>'+ rule.left + '</td>'
+			 + '<td>' + rule.right + '</td>' 
+			 + '<td>' + rule.actions
+			 + '<a class="badge" name="' + mazeGame.nextRuleNo() 
 			 + '" style="float: right">' + '&times;</a></td></tr>');
 		
 		$('#situation-modal').modal('hide');
@@ -415,7 +437,10 @@ $(document).ready(function () {
 			}
 			// update the rule (actions)
 			actionsText = mazeGame.getActionsOfSituation();
-			// console.log('actionsText:' + actionsText);
+			if (!actionsText) {
+				break;
+			}
+			console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
 		executeActions(moveList);
@@ -423,12 +448,12 @@ $(document).ready(function () {
 
 	showRule();
 
-	//Pledge Algo
+	//Algo 2
 	$('#pledge-algo').on('click', function() {
 		$('#action-list').text('');
 		$('#rule-list').text('');
 		if ($(this).text() === 'Zurücksetzen') {
-			$(this).text('Pledge Algo');
+			$(this).text('Algo 2');
 			mazeGame.reset();
 			algoExit = true;
 			$('#tremaux-algo').removeClass().addClass('btn');
@@ -446,7 +471,7 @@ $(document).ready(function () {
 				mazeGame.reset();
 				pledgeAlgo(300);	
 			} else {
-				$(this).text('Pledge Algo');
+				$(this).text('Algo 2');
 				mazeGame.reset();
 				algoExit = true;
 			}
@@ -457,7 +482,7 @@ $(document).ready(function () {
 		$('#action-list').text('');
 		$('#rule-list').text('');
 		if ($(this).text() === 'Zurücksetzen') {
-			$(this).text('Rechte-Hand Algo');
+			$(this).text('Algo 1');
 			mazeGame.reset();
 			algoExit = true;
 			$('#tremaux-algo').removeClass().addClass('btn');
@@ -475,7 +500,7 @@ $(document).ready(function () {
 				mazeGame.reset();
 				rightHand(300);	
 			} else {
-				$(this).text('Rechte-Hand Algo');
+				$(this).text('Algo 1');
 				mazeGame.reset();
 				algoExit = true;
 			}
@@ -488,7 +513,7 @@ $(document).ready(function () {
 		$('#rule-list').text('');
 		// console.log('[end]' + controller.end);
 		if ($(this).text() === 'Zurücksetzen') {
-			$(this).text('Trémaux\'s Algo');
+			$(this).text('Algo 3');
 			mazeGame.reset();
 			algoExit = true;
 			$('#pledge-algo').removeClass().addClass('btn');
@@ -507,7 +532,7 @@ $(document).ready(function () {
 				controller.init();
 				controller.run();
 			} else {
-				$(this).text('Trémaux\'s Algo');
+				$(this).text('Algo 3');
 				mazeGame.reset();
 				algoExit = true;
 			}
@@ -542,23 +567,6 @@ $(window).on('keydown', function (e) {
 		return false;
 	}
 });
-
-// function initGUI() {
-// 	mazeGame.reset();
-// 	algoExit = false;
-// 	gend = true;
-// 	clearTimeouts();
-// 	$('#action-list').text('');
-// 	$('#rule-list').text('');
-// 	$('#hand-algo').text('Rechte-Hand Algo');
-// 	$('#pledge-algo').text('Pledge Algo');
-// 	$('#tremaux-algo').text('Trémaux Algo');
-// 	$('#hand-algo').removeClass().addClass('btn');
-// 	$('#pledge-algo').removeClass().addClass('btn');
-// 	$('#tremaux-algo').removeClass().addClass('btn');
-// 	$("#run-code").removeClass().addClass('btn btn-default');
-
-// }
 
 function loadSolutionOfRule(solution) {
 	$('#rule-list').html('');
@@ -616,6 +624,9 @@ function simulateActions(actions) {
 			if (!simulateMoveDir("up")) {
 				return false;
 			}
+		} else {
+			alert("Geben L,V,R ein, L:links, V:vrowärt, R:rechts");
+			return false;
 		}
 	}
 }
@@ -681,7 +692,7 @@ function initModal() {
 				} else if (mazeGame.getMsgType().MARK) {
 					$('#alert-msg span').text('Marker liegt vor.');
 				} else if (mazeGame.getMsgType().CIRCLE) {
-					$('#alert-msg span').text('Drehe sich um 360 Grad.');
+					$('#alert-msg span').text('Gehe in eine Verklemmung.');
 				} else {
 					$('#alert-msg span').text('Treffe eine neue Situation.');
 				}
@@ -694,7 +705,7 @@ function initModal() {
 			} else if (mazeGame.getMsgType().MARK) {
 				$('#alert-msg span').text('Marker liegt vor.');
 			} else if (mazeGame.getMsgType().CIRCLE) {
-				$('#alert-msg span').text('Drehe sich um 360 Grad.');
+				$('#alert-msg span').text('Gehe in eine Verklemmung.');
 			} else {
 				$('#alert-msg span').text('Treffe eine neue Situation.');
 			}
@@ -722,31 +733,94 @@ function showCurrentStatus(forwardDir) {
 	 + '<td>' + toGerman[forwardDir] + '</td>');
 }
 
+function initJokerEvent() {
+	$('#myup').on('click', function() {
+		let s = mazeGame.getSituation(), str = $('#myup').text();
+		if (str === "Joker") {
+			if (s.up) {
+				$('#myup').removeClass().addClass("btn btn-default");
+				$('#myup').text("Vorne Belegt");
+			} else {
+				$('#myup').removeClass().addClass("btn btn-success");
+				$('#myup').text("Vorne Frei");
+			}
+			mazeGame.setJoker("up", false);
+		} else {
+			$('#myup').removeClass().addClass("btn btn-info");
+			$('#myup').text("Joker");
+			mazeGame.setJoker("up", true);
+		}
+
+	});
+	$('#myleft').on('click', function() {
+		let s = mazeGame.getSituation(), str = $('#myleft').text();
+		if (str === "Joker") {
+			if (s.left) {
+				$('#myleft').removeClass().addClass("btn btn-default");
+				$('#myleft').text("Vorne Belegt");
+			} else {
+				$('#myleft').removeClass().addClass("btn btn-success");
+				$('#myleft').text("Vorne Frei");
+			}
+			mazeGame.setJoker("left", false);
+		} else { // place joker
+			$('#myleft').removeClass().addClass("btn btn-info");
+			$('#myleft').text("Joker");
+			mazeGame.setJoker("left", true);
+		}
+	});
+	$('#myright').on('click', function() {
+		let s = mazeGame.getSituation(), str = $('#myright').text();
+		if (str === "Joker") {
+			if (s.right) {
+				$('#myright').removeClass().addClass("btn btn-default");
+				$('#myright').text("Vorne Belegt");
+			} else {
+				$('#myright').removeClass().addClass("btn btn-success");
+				$('#myright').text("Vorne Frei");
+			}
+			mazeGame.setJoker("right", false);
+		} else {
+			$('#myright').removeClass().addClass("btn btn-info");
+			$('#myright').text("Joker");
+			mazeGame.setJoker("right", true);
+		}
+	});
+}
+
 function showSituation() {
 	if (mazeGame) {
 
 		let situation = mazeGame.getSituation();
 
 		if (situation["up"] === false) {
-			$('#myup').removeClass().addClass("btn btn-success btn-transparent disabled");
+			$('#myup').removeClass().addClass("btn btn-success");
 			$('#myup').text("Vorne Frei");
 		} else {
-			$('#myup').removeClass().addClass("btn btn-default disabled btn-transparent");
+			$('#myup').removeClass().addClass("btn btn-default");
 			$('#myup').text("Vorne Belegt");
 		}
 		if (situation["left"] === false) {
-			$('#myleft').removeClass().addClass("btn btn-success btn-transparent disabled");
+			$('#myleft').removeClass().addClass("btn btn-success");
 			$('#myleft').text("Links Frei");
 		} else {
-			$('#myleft').removeClass().addClass("btn btn-default disabled btn-transparent");
+			$('#myleft').removeClass().addClass("btn btn-default");
 			$('#myleft').text("Links Belegt");
 		}
 		if (situation["right"] === false) {
-			$('#myright').removeClass().addClass("btn btn-success btn-transparent disabled");
+			$('#myright').removeClass().addClass("btn btn-success");
 			$('#myright').text("Rechts Frei");
 		} else {
-			$('#myright').removeClass().addClass("btn btn-default disabled btn-transparent");
+			$('#myright').removeClass().addClass("btn btn-default");
 			$('#myright').text("Rechts Belegt");
+		}
+
+		if (situation["mark"]) {
+			$('#mymark').removeClass().addClass("btn btn-success");
+			$('#mymark').text("Marker");
+		} else {
+			$('#mymark').removeClass().addClass("btn btn-default");
+			$('#mymark').text("Kein Marker");
 		}
 
 		$('#rotatedAngle').text(mazeGame.getAngle() + " Grad");

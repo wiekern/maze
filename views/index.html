@@ -3,7 +3,7 @@
 	<nav class="navbar navbar-default" role="navigation">
 	  <div class="container-fluid">
 	    <div class="navbar-header">
-	      <a class="navbar-brand" href="#">
+	      <a class="navbar-brand" href=".">
 			Maze
 	      </a>
 	    </div>
@@ -45,24 +45,22 @@
 							</div>
 							<div class="radio">
 								<label>
-									<input id="level2" type="radio" name="levelOptions" value="without" />
+									<input id="level2" type="radio" name="levelOptions" value="without" checked/>
 									ohne Inseln
 								</label>
-								
 							</div>
 							<div class="radio">
 								<label>
 									<input id="level3" type="radio" name="levelOptions" value="random" />
 									Inseln zufaellig
 								</label>
-								
 							</div>
 						</div>
 						<button type="submit" class="btn btn-primary">Generieren Maze</button>
 					</form>
 				</div>
-
 			</div>
+
 			<div class="col-md-6">
 				<div id="mode-blockly">
 					<div id="blocklyDiv" style="height: 480px; width: 100%;"></div>
@@ -109,11 +107,6 @@
 				<div class="row">
 					<div class="col-md-12">
 						<button id="new-rule" type="button" class="btn btn-default">Neue Regel</button>
-						<!-- <div class="checkbox">
-						    <label>
-						      <input id="check-angle" type="checkbox"> Winkel Prüfen
-						    </label>
-						</div> -->
 					</div>
 				</div>
 				<div class="row">
@@ -259,14 +252,18 @@
 	        			<a id="myup" class="btn btn-primary" style="width:120px">Vorne </a>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<a id="rotatedAngle" class="btn btn-primary btn-transparent disabled" style="width:120px">Winkel </a>
+	        			<!-- <a id="rotatedAngle" class="btn btn-primary btn-transparent disabled" style="width:120px">Winkel </a> -->
+	        			<button id="rotatedAngle" type="button" class="btn btn-primary"  data-container="body" data-toggle="popover" data-placement="top" data-content="dreht sich links: +90, rechts: -90" style="width:120px">
+						  Winkel
+						</button>
 	        		</div>
 	        	</div>
 	        	<div class="row">
 	        		<div class="col-md-3 col-md-offset-2">
-	        			<a id="myleft" class="btn btn-primary" style="width:120px">Links </a>
+	        			<a id="myleft" class="btn btn-default" style="width:120px">Links </a>
 	        		</div>
 	        		<div class="col-md-3">
+	        			<a id="mymark" class="btn btn-default" style="width:120px">Kein Marker </a>
 	        		</div>
 					<div class="col-md-3">
 						<a id="myright" class="btn btn-default" style="width:120px">Rechts </a>
@@ -276,17 +273,17 @@
 	        <hr />
 	        <div class="container-fluid">
 	        	<div class="row">
-	        		<div class="col-md-3">
-	        			<a id="place-mark" class="btn btn-success btn-transparent" style="width:120px">Marker setzen</a>
+	  <!--       		<div class="col-md-3">
+	        			<a id="place-mark" class="btn btn-success" style="width:120px">Marker setzen</a>
+	        		</div> -->
+	        		<div class="col-md-3 col-md-offset-2">
+	        			<a id="turn-left" class="btn btn-success" style="width:120px">Links drehnen</a>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<a id="turn-left" class="btn btn-success btn-transparent" style="width:120px">Links drehnen</a>
-	        		</div>
-	        		<div class="col-md-3">
-	        			<a id="go-forward" class="btn btn-success btn-transparent" style="width:120px">Vorwaert laufen</a>
+	        			<a id="go-forward" class="btn btn-success" style="width:120px">Vorwaert laufen</a>
 	        		</div>
 					<div class="col-md-3">
-						<a id="turn-right" class="btn btn-success btn-transparent" style="width:120px">Rechts drehnen</a>
+						<a id="turn-right" class="btn btn-success" style="width:120px">Rechts drehnen</a>
 	        		</div>
 	        	</div>
 	        	<div class="row">
