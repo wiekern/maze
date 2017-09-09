@@ -90,13 +90,20 @@ function MazeGame(canvas, options) {
 			positionAngles.push(new Array());
 			simulatePositionAngles.push(new Array());
 			for (x = 0; x < options.level_size[0]; x++) {
-				positionAngles[y].push({angle: 0, visited: false});
-				simulatePositionAngles[y].push({angle: 0, visited: false});
-
+				positionAngles[y].push({angle: undefined, visited: false});
+				simulatePositionAngles[y].push({angle: undefined, visited: false});
 			}
 		}
-		// positionAngles[0][0].visited = true;
-		// simulatePositionAngles[0][0].visited = true;
+	}
+
+	var stopedStatus = [];
+	function initStopedStatus() {
+		for (y = 0; y < options.level_size[1]; y++) {
+			stopedStatus.push(new Array());
+			for (x = 0; x < options.level_size[0]; x++) {
+				stopedStatus[y].push({up: false, down: false, left: false, right: false});
+			}
+		}
 	}
 
 	var rand = new Rand();
@@ -400,6 +407,7 @@ function MazeGame(canvas, options) {
 		height = parseInt(height);
 		maze = new Maze(height, width);
 		initPostionAngles();
+		initStopedStatus();
 		var screenWidth = $(window).width();
 		options.scale = Math.floor((screenWidth * 0.5 - (options.wall_width * (width + 1))) / width);
 		currentPos = Object.assign({}, options.starting_position);
@@ -455,6 +463,7 @@ function MazeGame(canvas, options) {
 
 		// reset angle
 		startAngle = 0;
+		simulateAngle = 0
 
 		// record position
 		oldPos = currentPos;
@@ -531,6 +540,29 @@ function MazeGame(canvas, options) {
 		}
 	}
 
+	var joker = {
+		up: false,
+		left: false,
+		right: false
+	};
+	this.setJoker = function(dir, value) {
+		if (dir === "up") {
+			joker.up = value;
+		} else if (dir === "left") {
+			joker.left = value;
+		} else if (dir === "right") {
+			joker.right = value;
+		}
+	};
+
+	function resetJoker() {
+		joker = {
+			up: false,
+			left: false,
+			right: false
+		};
+	}
+
 	this.solutionToJson = function(name) {
 		if (!name) {
 			return null;
@@ -588,6 +620,12 @@ function MazeGame(canvas, options) {
 		marks.push(currentPos);
 	};
 
+	this.removeMark = function() {
+		var index = this.getShortSituation();
+		solution.marks[index] = false;
+		marks.pop(currentPos);
+	};
+
 	function curPosInMarks() {
 		for (var i = 0; i < marks.length; i++) {
 			if (marks[i].x === currentPos.x && marks[i].y === currentPos.y) {
@@ -608,47 +646,103 @@ function MazeGame(canvas, options) {
 		}
 	};
 
-	this.storeActions = function(actions) {
-		let i = this.getShortSituation();
-		solution.actionsList[i] = actions;
-		// console.log('[storeActions]' + i + ' ' + solution.actionsList[i]);
+	// this.storeActions = function(actions) {
+	// 	let i = this.getShortSituation();
+	// 	solution.actionsList[i] = actions;
+	// 	// console.log('[storeActions]' + i + ' ' + solution.actionsList[i]);
 
-	}
+	// }
 
-	this.setSituation = function(b) {
-		let i = this.getShortSituation();
-		solution.situations[i] = b;
+	var ruleRecord = [], ruleNo = 0;
+
+	this.nextRuleNo = function() {
+		return ruleNo++;
+	};
+
+	this.setSituation = function(b, actions) {
+		let index = this.getShortSituation(), s = this.getSituation(), hasJoker = false;
+		
+		// 0, 1, 2, 3, 8, 9, 10, 11
+		let res = [], situNums = [0b0000, 0b0001, 0b0010, 0b0011, 0b1000, 0b1001, 0b1010, 0b1011];
+		if (!joker.up) {
+			if (s.up == true) {
+				res.push({bit: 3, val: 1});
+			} else {
+				res.push({bit: 3, val: 0});
+			}
+		}
+
+		if (!joker.left) {
+			if (s.left == true) {
+				res.push({bit: 1, val: 1});
+			} else {
+				res.push({bit: 1, val: 0});
+			}
+		}
+
+		if (!joker.right) {
+			if (s.right == true) {
+				res.push({bit: 0, val: 1});
+			} else {
+				res.push({bit: 0, val: 0});
+			}
+		}
+		ruleRecord.push(new Array());
+		for (var i = 0; i < situNums.length; i++) {
+			for (var j = 0; j < res.length; j++) {
+				if (((situNums[i] >> res[j].bit) & 0x1) !== res[j].val) {
+					break;
+				}
+
+				if (j === (res.length - 1)) {
+					solution.situations[situNums[i]] = b;
+					solution.actionsList[situNums[i]] = actions;
+					ruleRecord[ruleNo].push(situNums[i]);
+				}
+			}
+		}
+
+		resetJoker();
 	}
 
 	this.removeRule = function(i) {
-		solution.situations[i] = false;
-		solution.actionsList[i] = "";
+		let situs = ruleRecord[i];
+		if (!situs) {
+			return ;
+		}
+		for (var i = 0; i < situs.length; i++) {
+			solution.situations[situs[i]] = false;
+			solution.actionsList[situs[i]] = "";
+		}
 	};
 
 	this.isSituationExisted = function() {
+		stopedStatus[oldPos.x][oldPos.y][oldPos.dir] = true;
 		initMsgType();
-		// if (checkAngle && simulateTurnCircle(currentPos)) {			
-		// 	setMsgType('CIRCLE');
-		// 	console.log('break, circle');
-		// 	return false;
-		// }
 
 		let i = this.getShortSituation();
 		// console.log("situation:" + i + " " + solution.situations[i]);
 		if (solution.situations[i] === true) {
-			if (!simualteMarched) {	// at same position met a difined rule
+			// if (!simualteMarched) {	// at same position met a difined rule
+			// 	setMsgType('CIRCLE');
+			// 	simulateAngle %= 360;
+			// 	return false;
+			// } else {
+			// 	if (checkAngle && simulateTurnCircle(currentPos)) {			
+			// 		setMsgType('CIRCLE');
+			// 		console.log('break, circle');
+			// 		return false;
+			// 	}
+			// }
+			if (stopedStatus[currentPos.x][currentPos.y][currentPos.dir] === true) {
 				setMsgType('CIRCLE');
-				simulateAngle %= 360;
 				return false;
 			} else {
-				if (checkAngle && simulateTurnCircle(currentPos)) {			
-					setMsgType('CIRCLE');
-					console.log('break, circle');
-					return false;
-				}
+				stopedStatus[currentPos.x][currentPos.y][currentPos.dir] = true;
+				return true;
 			}
-			return true;
 		} else {
+			stopedStatus[currentPos.x][currentPos.y][currentPos.dir] = true;
 			return false;
 		}
 	};
@@ -688,7 +782,8 @@ function MazeGame(canvas, options) {
 			up: cell[faceTo["up"]],
 			down: cell[faceTo["down"]],
 			left: cell[faceTo["left"]],
-			right: cell[faceTo["right"]]
+			right: cell[faceTo["right"]],
+			mark:  curPosInMarks()
 		};
 		return res;
 	};
@@ -712,6 +807,7 @@ function MazeGame(canvas, options) {
 		// console.log("short:" + shortSituation);
 		return shortSituation;
 	};
+
 
 	this.getLongSituation = function() {
 		let cell = maze.getCell(currentPos.x, currentPos.y),
@@ -811,6 +907,9 @@ function MazeGame(canvas, options) {
 		if (!positionAngles[pos.x][pos.y].visited) {
 			return false;
 		}
+		if (!positionAngles[pos.x][pos.y].angle) {
+			console.log('nomal, impossible.');
+		}
 
 		var angle = startAngle - positionAngles[pos.x][pos.y].angle;
 		// console.log('normal: ' + startAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
@@ -829,9 +928,12 @@ function MazeGame(canvas, options) {
 		if (!simulatePositionAngles[pos.x][pos.y].visited) {
 			return false;
 		}
+		if (!simulatePositionAngles[pos.x][pos.y].angle) {
+			console.log('impossible.');
+		}
 
 		var angle = simulateAngle - simulatePositionAngles[pos.x][pos.y].angle;
-		// console.log( positionAngles[pos.x][pos.y] + ' ' + angle);
+		console.log( positionAngles[pos.x][pos.y] + ' ' + angle);
 		// console.log('simulate angle:' + simulateAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
 
 		if ((angle % 360 === 0) && (angle !== 0)) {
@@ -841,8 +943,6 @@ function MazeGame(canvas, options) {
 		} else {
 			return false;
 		}
-		
-		
 	}
 
 	this.setCheckAngle = function(flag) {
@@ -911,8 +1011,9 @@ function MazeGame(canvas, options) {
 					}
 					simualteMarched = true;
 					simulateAngle = simulateAngle % 360;
+					console.log(simulateAngle);
 					simulatePositionAngles[oldPos.x][oldPos.y].angle = simulateAngle;
-					simulatePositionAngles[currentPos.x][currentPos.y].angle = simulateAngle;
+					// simulatePositionAngles[currentPos.x][currentPos.y].angle = simulateAngle;
 				} else {
 
 					return false;
@@ -936,6 +1037,7 @@ function MazeGame(canvas, options) {
 	this.move = function(direction, inAlgo=false) {
 		marched = false;
 		oldPos = Object.assign({}, currentPos);
+
 		// console.log('[move] oldPos:' + oldPos.dir + ' new dir:' + direction);
 		// currentPos: old postion we needed, newPos is calculated new position namely current position.
 		var newPos = {
@@ -971,7 +1073,7 @@ function MazeGame(canvas, options) {
 					marched = true;
 					startAngle = startAngle % 360;
 					positionAngles[oldPos.x][oldPos.y].angle = startAngle;
-					positionAngles[currentPos.x][currentPos.y].angle = startAngle;
+					// positionAngles[currentPos.x][currentPos.y].angle = startAngle;
 				
 				} else {
 					setMsgType('WALL');
