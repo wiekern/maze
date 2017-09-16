@@ -5,6 +5,7 @@ function pledgeAlgo(speed) {
 		clearTimeouts();
 		gend = true;
 		algoExit = false;
+		$('#reset-maze').removeClass().addClass('btn');
 		$('#tremaux-algo').removeClass().addClass('btn');
 		$('#hand-algo').removeClass().addClass('btn');
 		$("#run-code").removeClass().addClass('btn btn-default');
@@ -23,7 +24,7 @@ function pledgeAlgo(speed) {
 				}
 			} else {	//along with left-hand
 				if (gsituation.left === false) {
-					moveDir("left", true); // im Uhrzeigersinn
+					moveDir("left", true); // gegen Uhrzeigersinn
 					gcounter -= 1;
 					moveDir("up", true);
 				} else if (gsituation.up === false) {
@@ -49,6 +50,7 @@ function pledgeAlgo(speed) {
 			pledgeAlgo(speed);
 		}, speed);	
 	} else {
+		$('#reset-maze').removeClass().addClass('btn');
 		$('#tremaux-algo').removeClass().addClass('btn');
 		$('#hand-algo').removeClass().addClass('btn');
 		$("#run-code").removeClass().addClass('btn btn-default');
@@ -61,6 +63,7 @@ function rightHand(speed) {
 		clearTimeouts();
 		gend = true;
 		algoExit = false;
+		$('#reset-maze').removeClass().addClass('btn');
 		$('#tremaux-algo').removeClass().addClass('btn');
 		$('#pledge-algo').removeClass().addClass('btn');
 		$("#run-code").removeClass().addClass('btn btn-default');
@@ -107,6 +110,7 @@ function Controller(walker) {
 			clearTimeouts();
 			this.end = true;
 			algoExit = false;
+			$('#reset-maze').removeClass().addClass('btn');
 			$('#pledge-algo').removeClass().addClass('btn');
 			$('#hand-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
