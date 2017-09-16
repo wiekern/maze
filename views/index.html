@@ -9,9 +9,9 @@
 	    </div>
 	    <ul class="nav navbar-nav">
 	    	<li><a href="#options">Optionen</a></li>
-	    	<li><a id="hand-algo" type="button" role="button">Algo 1</a></li>
+<!-- 	    	<li><a id="hand-algo" type="button" role="button">Algo 1</a></li>
 	    	<li><a id="pledge-algo" type="button" role="button">Algo 2</a></li>
-	    	<li><a id="tremaux-algo" type="button" role="button">Algo 3</a></li>
+	    	<li><a id="tremaux-algo" type="button" role="button">Algo 3</a></li> -->
 	    </ul>
 
 	    <a id="game-mode" class="btn navbar-btn navbar-link"><span class="label label-default">Blockly</span></a>
@@ -104,9 +104,12 @@
 		
 				</div>
 
-				<div class="row">
-					<div class="col-md-12">
-						<button id="new-rule" type="button" class="btn btn-default">Neue Regel</button>
+			<div class="row">
+					<div class="col-md-12" style="margin-bottom: 6px;">
+						<!-- <button id="new-rule" type="button" class="btn btn-default">Neue Regel</button> -->
+						<button id="new-rule" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Verfüge über die Bewegung des Roboters" style="width:120px;">Neue Regel </button>
+
+						<button id="reset-maze" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Lasse den Roboter am Startpunkt liegen" >Zurücksetzen </button>
 					</div>
 				</div>
 				<div class="row">
@@ -171,7 +174,7 @@
 		    <field name="turnTo">right</field>
 		  </block>
 	  </category>
-	  <category name="Winkel&Marker" colour="#A65C55">
+	  <category name="Winkel und Marker" colour="#A65C55">
 		<block type="if">
 		    <value name="ifBranch">
 		      <block type="anglecompare">
@@ -189,7 +192,7 @@
 		  </block>
 		  <block type="marker"></block>
 	  </category>
-	  <category name="Variables" colour="#A65C88" custom="VARIABLE"></category>
+	  <category name="Variable" colour="#A65C88" custom="VARIABLE"></category>
 	</xml>
 
 	<!-- test solution -->
@@ -262,24 +265,28 @@
 	        <div class="container-fluid">
 	        	<div class="row">
 	        		<div class="col-md-offset-5 col-md-3">
-	        			<a id="myup" class="btn btn-primary" style="width:120px">Vorne </a>
+	        			<!-- <a id="myup" class="btn btn-primary" style="width:120px">Vorne </a> -->
+	        			<button id="myup" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt " style="width:120px">Vorne </button>
 	        		</div>
 	        		<div class="col-md-3">
 	        			<!-- <a id="rotatedAngle" class="btn btn-primary btn-transparent disabled" style="width:120px">Winkel </a> -->
-	        			<button id="rotatedAngle" type="button" class="btn btn-primary"  data-container="body" data-toggle="popover" data-placement="top" data-content="dreht sich links: +90, rechts: -90" style="width:120px">
+	        			<button id="rotatedAngle" type="button" class="btn btn-primary"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="dreht sich links: +90, rechts: -90" style="width:120px">
 						  Winkel
 						</button>
 	        		</div>
 	        	</div>
 	        	<div class="row">
 	        		<div class="col-md-3 col-md-offset-2">
-	        			<a id="myleft" class="btn btn-default" style="width:120px">Links </a>
+	        			<!-- <a id="myleft" class="btn btn-default" style="width:120px">Links </a> -->
+		        		<button id="myleft" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt" style="width:120px">Links </button>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<a id="mymark" class="btn btn-default" style="width:120px">Kein Marker </a>
+	        			<!-- <a id="mymark" class="btn btn-default" style="width:120px">Kein Marker </a> -->
+	        			<button id="mymark" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Marker zu setzen. Marker: Falls ein Marker an einer Stelle, wenn Sie an dieser Stelle zurückkommen, stoppt der Roboter." style="width:120px">Kein Marker </button>
 	        		</div>
 					<div class="col-md-3">
-						<a id="myright" class="btn btn-default" style="width:120px">Rechts </a>
+						<!-- <a id="myright" class="btn btn-default" style="width:120px">Rechts </a> -->
+	        			<button id="myright" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt" style="width:120px">Rechts </button>
 	        		</div>
 	        	</div>
 	        </div>
@@ -290,13 +297,13 @@
 	        			<a id="place-mark" class="btn btn-success" style="width:120px">Marker setzen</a>
 	        		</div> -->
 	        		<div class="col-md-3 col-md-offset-2">
-	        			<a id="turn-left" class="btn btn-success" style="width:120px">Links drehnen</a>
+	        			<a id="turn-left" class="btn btn-success" style="width:120px">Links drehen</a>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<a id="go-forward" class="btn btn-success" style="width:120px">Vorwaert laufen</a>
+	        			<a id="go-forward" class="btn btn-success" style="width:120px">Vorwärts laufen</a>
 	        		</div>
 					<div class="col-md-3">
-						<a id="turn-right" class="btn btn-success" style="width:120px">Rechts drehnen</a>
+						<a id="turn-right" class="btn btn-success" style="width:120px">Rechts drehen</a>
 	        		</div>
 	        	</div>
 	        	<div class="row">

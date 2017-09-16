@@ -215,7 +215,7 @@ var blocksJson = [{
   "previousStatement": null,
   "nextStatement": null,
   "colour": 180,
-  "tooltip": "",
+  "tooltip": "Falls ein Marker an einer Stelle, wenn der Roboter an dieser Stelle zurückkommt, stoppt der Roboter.",
   "helpUrl": ""
 },
 {
@@ -258,9 +258,9 @@ for (let i = 0; i < blocksJson.length; i++) {
 	    this.jsonInit(blocksJson[i]);
 	    // Assign 'this' to a variable for use in the tooltip closure below.
 	    var thisBlock = this;
-	    this.setTooltip(function() {
-	      return '';
-	    });
+	    // this.setTooltip(function() {
+	    //   return this.tooltip;
+	    // });
 	  }
 	};
 }
