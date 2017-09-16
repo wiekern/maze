@@ -80,14 +80,6 @@ ul {
 	padding-left: 0;
 }
 
-#new-rule {
-	margin-bottom: 10px;
-}
-
-/*#execute-action, #actions {
-	background-color: rgba(0,0,0,0.1);
-}*/
-
 .modal.left .modal-dialog,
 .modal.right .modal-dialog {
 	position: fixed;
