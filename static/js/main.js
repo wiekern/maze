@@ -74,10 +74,10 @@ $(document).ready(function () {
 
 	workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
   	Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
-  	// For test.
-	var workspaceBlocks = document.getElementById("workspaceBlocks"); 
+  	// For test. Basic Algo
+	// var workspaceBlocks = document.getElementById("workspaceBlocks"); 
 	/* Load blocks to workspace. */
-	Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
+	// Blockly.Xml.domToWorkspace(workspace, workspaceBlocks);
 
   	$("#run-code").click(function () {
   		if ($(this).text() === 'Zurücksetzen') {
@@ -170,18 +170,21 @@ $(document).ready(function () {
 			$(this).text('Regel');
 			$('#mode-blockly').show();
 			Blockly.Xml.domToWorkspace(workspace, blocklyDiv);
+			$('#reset-maze').hide();
 			$('#mode-rule').hide();
 			$('#new-rule').hide();
 			$('#run-solution').hide();
 		} else if (game_mode === 'Regel') {
 			$(this).text('Blockly');
 			$('#mode-blockly').hide();
+			$('#reset-maze').show();
 			$('#mode-rule').show();
 			$('#new-rule').show();
 			$('#run-solution').show();
 		} else {
 			$(this).text('Regel');
 			$('#mode-blockly').hide();
+			$('#reset-maze').show();
 			$('#mode-rule').show();
 			$('#new-rule').show();
 			$('#run-solution').show();
@@ -448,36 +451,18 @@ $(document).ready(function () {
 
 	showRule();
 
-	//Algo 2
-	$('#pledge-algo').on('click', function() {
+	$('#reset-maze').on('click', function() {
 		$('#action-list').text('');
 		$('#rule-list').text('');
-		if ($(this).text() === 'Zurücksetzen') {
-			$(this).text('Algo 2');
-			mazeGame.reset();
-			algoExit = true;
-			$('#tremaux-algo').removeClass().addClass('btn');
-			$('#hand-algo').removeClass().addClass('btn');
-			$("#run-code").removeClass().addClass('btn btn-default');
-			$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
-		} else {
-			if (gend) {
-				$(this).text('Zurücksetzen');
-				$('#hand-algo').removeClass().addClass('disabled btn');
-				$('#tremaux-algo').removeClass().addClass('disabled btn');
-				$("#run-code").removeClass().addClass('disabled btn');
-				$("#game-mode").removeClass().addClass('disabled btn navbar-btn');
-				algoExit = false;
-				mazeGame.reset();
-				pledgeAlgo(300);	
-			} else {
-				$(this).text('Algo 2');
-				mazeGame.reset();
-				algoExit = true;
-			}
-		}
+		mazeGame.reset();
+		algoExit = true;
+		$('#tremaux-algo').removeClass().addClass('btn');
+		$('#hand-algo').removeClass().addClass('btn');
+		$("#run-code").removeClass().addClass('btn btn-default');
+		$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
 		
 	});
+
 	$('#hand-algo').on('click', function() {
 		$('#action-list').text('');
 		$('#rule-list').text('');
@@ -485,6 +470,7 @@ $(document).ready(function () {
 			$(this).text('Algo 1');
 			mazeGame.reset();
 			algoExit = true;
+			$('#reset-maze').removeClass().addClass('btn');
 			$('#tremaux-algo').removeClass().addClass('btn');
 			$('#pledge-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
@@ -492,6 +478,7 @@ $(document).ready(function () {
 		} else {
 			if (gend) {
 				$(this).text('Zurücksetzen');
+				$('#reset-maze').removeClass().addClass('disabled btn');
 				$('#tremaux-algo').removeClass().addClass('disabled btn');
 				$('#pledge-algo').removeClass().addClass('disabled btn');
 				$("#run-code").removeClass().addClass('disabled btn');
@@ -508,6 +495,39 @@ $(document).ready(function () {
 		
 	});
 
+	//Algo 2
+	$('#pledge-algo').on('click', function() {
+		$('#action-list').text('');
+		$('#rule-list').text('');
+		if ($(this).text() === 'Zurücksetzen') {
+			$(this).text('Algo 2');
+			mazeGame.reset();
+			algoExit = true;
+			$('#reset-maze').removeClass().addClass('btn');
+			$('#tremaux-algo').removeClass().addClass('btn');
+			$('#hand-algo').removeClass().addClass('btn');
+			$("#run-code").removeClass().addClass('btn btn-default');
+			$("#game-mode").removeClass().addClass('btn navbar-btn navbar-link');
+		} else {
+			if (gend) {
+				$(this).text('Zurücksetzen');
+				$('#reset-maze').removeClass().addClass('disabled btn');
+				$('#hand-algo').removeClass().addClass('disabled btn');
+				$('#tremaux-algo').removeClass().addClass('disabled btn');
+				$("#run-code").removeClass().addClass('disabled btn');
+				$("#game-mode").removeClass().addClass('disabled btn navbar-btn');
+				algoExit = false;
+				mazeGame.reset();
+				pledgeAlgo(300);	
+			} else {
+				$(this).text('Algo 2');
+				mazeGame.reset();
+				algoExit = true;
+			}
+		}
+		
+	});
+
 	$('#tremaux-algo').on('click', function() {
 		$('#action-list').text('');
 		$('#rule-list').text('');
@@ -516,6 +536,7 @@ $(document).ready(function () {
 			$(this).text('Algo 3');
 			mazeGame.reset();
 			algoExit = true;
+			$('#reset-maze').removeClass().addClass('btn');
 			$('#pledge-algo').removeClass().addClass('btn');
 			$('#hand-algo').removeClass().addClass('btn');
 			$("#run-code").removeClass().addClass('btn btn-default');
@@ -523,6 +544,7 @@ $(document).ready(function () {
 		} else {
 			if (controller.end) {
 				$(this).text('Zurücksetzen');
+				$('#reset-maze').removeClass().addClass('disabled btn');
 				$('#hand-algo').removeClass().addClass('disabled btn');
 				$('#pledge-algo').removeClass().addClass('disabled btn');
 				$("#run-code").removeClass().addClass('disabled btn');
