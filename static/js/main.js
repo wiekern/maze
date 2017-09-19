@@ -143,6 +143,8 @@ $(document).ready(function () {
 	$("#options form").on('submit', function () {
 		mazeOptions.level_size = [$('#w').val(), $('#h').val()];
 		mazeOptions.levelOption = $('#level-option input:radio:checked').val();
+		$('#action-list').text('');
+		$('#rule-list').text('');
 		mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
 		controller = new Controller(mazeGame);
 		$('#options, #end-game').hide();
@@ -395,36 +397,47 @@ $(document).ready(function () {
 		addAction("R");
 	});
 
+	var statusToBoolean = {
+		Frei: false,
+		Belegt: true
+	};
+
 	$('#execute-action').on('click', function() {
 		let actionsText = $('#actions').val(), 
 			rule = {
-				up: $('#myup').text(), 
-				left: $('#myleft').text(),
-				right: $('#myright').text(),
+				front: $('#myup').text() !== "Joker" ? $('#myup').text().substring(6):$('#myup').text(), 
+				left: $('#myleft').text() !== "Joker" ? $('#myleft').text().substring(6):$('#myleft').text(),
+				right: $('#myright').text() !== "Joker" ? $('#myright').text().substring(7):$('#myright').text(),
 				actions: $('#actions').val()
+			},
+			situ = {
+				front: $('#myup').text() !== "Joker" ? statusToBoolean[$('#myup').text().substring(6)]:undefined, 
+				left: $('#myleft').text() !== "Joker" ? statusToBoolean[$('#myleft').text().substring(6)]:undefined,
+				right: $('#myright').text() !== "Joker" ? statusToBoolean[$('#myright').text().substring(7)]:undefined,
 			};
-		console.log(rule);
+		console.log(situ);
 		if (!actionsText) {
 			return;
 		}
 		$('#actions').val('');
 		// 1. store rule
 		mazeGame.setSituation(true, actionsText);
-		// mazeGame.storeActions(actionsText);
 		// 2. show rule
-		// let situation = mazeGame.getLongSituation();
-		// $('#rule-list').append('<tr><td>' + situation.up + '</td>' 
-		// 	 + '<td>'+ situation.left + '</td>'
-		// 	 + '<td>' + situation.right + '</td>' 
-		// 	 + '<td>' + mazeGame.getActionsOfSituation() 
-		// 	 + '<a class="badge" name="' + mazeGame.getShortSituation() 
-		// 	 + '" style="float: right">' + '&times;</a></td></tr>');
-		$('#rule-list').append('<tr><td>' + rule.up + '</td>' 
+		var ruleSelector = $('#rule-list tr a[name=\"' + mazeGame.indexOfSituations(situ) + '\"]');
+		console.log('length:' + ruleSelector.length);	
+		// console.log('#rule-list tr a[name=\"' + mazeGame.indexOfSituations(situ) + '\"]');
+		if (ruleSelector.length) {
+			var tdChild = ruleSelector.parent();
+			tdChild.html(rule.actions + ruleSelector.clone()[0].outerHTML);
+		} else {
+			$('#rule-list').append('<tr><td>' + rule.front + '</td>' 
 			 + '<td>'+ rule.left + '</td>'
 			 + '<td>' + rule.right + '</td>' 
 			 + '<td>' + rule.actions
-			 + '<a class="badge" name="' + mazeGame.nextRuleNo() 
+			 // + '<a class="badge" name="' + mazeGame.nextRuleNo() 
+			 + '<a class="badge" name="' + mazeGame.indexOfSituations(situ)
 			 + '" style="float: right">' + '&times;</a></td></tr>');
+		}
 		
 		$('#situation-modal').modal('hide');
 
@@ -714,7 +727,7 @@ function initModal() {
 				} else if (mazeGame.getMsgType().MARK) {
 					$('#alert-msg span').text('Marker liegt vor.');
 				} else if (mazeGame.getMsgType().CIRCLE) {
-					$('#alert-msg span').text('Gehe in eine Verklemmung.');
+					$('#alert-msg span').text('Gehe in eine Schleife.');
 				} else {
 					$('#alert-msg span').text('Treffe eine neue Situation.');
 				}
@@ -727,7 +740,7 @@ function initModal() {
 			} else if (mazeGame.getMsgType().MARK) {
 				$('#alert-msg span').text('Marker liegt vor.');
 			} else if (mazeGame.getMsgType().CIRCLE) {
-				$('#alert-msg span').text('Gehe in eine Verklemmung.');
+				$('#alert-msg span').text('Gehe in eine Schleife.');
 			} else {
 				$('#alert-msg span').text('Treffe eine neue Situation.');
 			}
