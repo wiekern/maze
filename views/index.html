@@ -65,12 +65,11 @@
 				<div id="mode-blockly">
 					<div id="blocklyDiv" style="height: 480px; width: 100%;"></div>
 					<button id="run-code" class="btn btn-default" style="margin: 6px 0;">Programm Ausführen</button>
-					<!-- <a id="new-rule" type="button" role="button">Neue Regel</a> -->
 				</div>
 				
 				<div id="mode-rule" style="margin-bottom: 10px;">
 					<div class="row">
-						<div class="col-md-6" style="max-height: 400px; overflow: auto;">
+						<div class="col-md-6" style="height: 400px; max-height: 400px; overflow: auto;">
 							<table class="table table-hover">
 					  			<thead>
 							      <tr>
@@ -84,7 +83,7 @@
 							    </tbody>
 				  			</table>
 			  			</div>
-			  			<div class="col-md-6" style="max-height: 400px; overflow: auto;">
+			  			<div class="col-md-6" style="height: 400px; max-height: 400px; overflow: auto;">
 				  			<table class="table table-hover">
 				  				 <thead>
 							      <tr>
@@ -106,7 +105,6 @@
 
 			<div class="row">
 					<div class="col-md-12" style="margin-bottom: 6px;">
-						<!-- <button id="new-rule" type="button" class="btn btn-default">Neue Regel</button> -->
 						<button id="new-rule" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Verfüge über die Bewegung des Roboters" style="width:120px;">Neue Regel </button>
 
 						<button id="reset-maze" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Lasse den Roboter am Startpunkt liegen" >Zurücksetzen </button>
@@ -265,11 +263,9 @@
 	        <div class="container-fluid">
 	        	<div class="row">
 	        		<div class="col-md-offset-5 col-md-3">
-	        			<!-- <a id="myup" class="btn btn-primary" style="width:120px">Vorne </a> -->
 	        			<button id="myup" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt " style="width:120px">Vorne </button>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<!-- <a id="rotatedAngle" class="btn btn-primary btn-transparent disabled" style="width:120px">Winkel </a> -->
 	        			<button id="rotatedAngle" type="button" class="btn btn-primary"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="dreht sich links: +90, rechts: -90" style="width:120px">
 						  Winkel
 						</button>
@@ -277,15 +273,12 @@
 	        	</div>
 	        	<div class="row">
 	        		<div class="col-md-3 col-md-offset-2">
-	        			<!-- <a id="myleft" class="btn btn-default" style="width:120px">Links </a> -->
 		        		<button id="myleft" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt" style="width:120px">Links </button>
 	        		</div>
 	        		<div class="col-md-3">
-	        			<!-- <a id="mymark" class="btn btn-default" style="width:120px">Kein Marker </a> -->
 	        			<button id="mymark" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Marker zu setzen. Marker: Falls ein Marker an einer Stelle, wenn Sie an dieser Stelle zurückkommen, stoppt der Roboter." style="width:120px">Kein Marker </button>
 	        		</div>
 					<div class="col-md-3">
-						<!-- <a id="myright" class="btn btn-default" style="width:120px">Rechts </a> -->
 	        			<button id="myright" type="button" class="btn btn-default"  data-container="body" data-trigger="hover" data-toggle="popover" data-placement="bottom" data-content="Klicken, Joker zu setzen. Joker: der Zustand der Wand an dieser Richtung ist egal, Frei und Belegt" style="width:120px">Rechts </button>
 	        		</div>
 	        	</div>
@@ -293,9 +286,6 @@
 	        <hr />
 	        <div class="container-fluid">
 	        	<div class="row">
-	  <!--       		<div class="col-md-3">
-	        			<a id="place-mark" class="btn btn-success" style="width:120px">Marker setzen</a>
-	        		</div> -->
 	        		<div class="col-md-3 col-md-offset-2">
 	        			<a id="turn-left" class="btn btn-success" style="width:120px">Links drehen</a>
 	        		</div>

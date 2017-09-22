@@ -26,48 +26,52 @@ function MazeGame(canvas, options) {
 	$(window).on('resize', center);
 	
 	var ctx, oldPos = options.starting_position, currentPos = options.starting_position, 
-		startAngle = 0, maze, path, gameInProgress, marks, checkAngle = true;
+		startAngle = 0, maze, path, gameInProgress, marks;
 
 	var allSituations = [
-		{front: false, left: false, right: false},
-		{front: false, left: false, right: true},
-		{front: false, left: false, right: undefined},
-		{front: false, left: true, right: false},
-		{front: false, left: undefined, right: false},
-		{front: false, left: true, right: true},
-		{front: false, left: undefined, right: true},
-		{front: false, left: true, right: undefined},
-		{front: false, left: undefined, right: undefined},
+		{up: false, left: false, right: false, actions:""},
+		{up: false, left: false, right: true, actions:""},
+		{up: false, left: false, right: undefined, actions:""},
+		{up: false, left: true, right: false, actions:""},
+		{up: false, left: undefined, right: false, actions:""},
+		{up: false, left: true, right: true, actions:""},
+		{up: false, left: undefined, right: true, actions:""},
+		{up: false, left: true, right: undefined, actions:""},
+		{up: false, left: undefined, right: undefined, actions:""},
 
-		{front: true, left: false, right: false},
-		{front: true, left: false, right: true},
-		{front: true, left: false, right: undefined},
-		{front: true, left: true, right: false},
-		{front: true, left: undefined, right: false},
-		{front: true, left: true, right: true},
-		{front: true, left: undefined, right: true},
-		{front: true, left: true, right: undefined},
-		{front: true, left: undefined, right: undefined},
+		{up: true, left: false, right: false, actions:""},
+		{up: true, left: false, right: true, actions:""},
+		{up: true, left: false, right: undefined, actions:""},
+		{up: true, left: true, right: false, actions:""},
+		{up: true, left: undefined, right: false, actions:""},
+		{up: true, left: true, right: true, actions:""},
+		{up: true, left: undefined, right: true, actions:""},
+		{up: true, left: true, right: undefined, actions:""},
+		{up: true, left: undefined, right: undefined, actions:""},
 
-		{front: undefined, left: false, right: false},
-		{front: undefined, left: false, right: true},
-		{front: undefined, left: false, right: undefined},
-		{front: undefined, left: true, right: false},
-		{front: undefined, left: undefined, right: false},
-		{front: undefined, left: true, right: true},
-		{front: undefined, left: undefined, right: true},
-		{front: undefined, left: true, right: undefined},
-		{front: undefined, left: undefined, right: undefined}
+		{up: undefined, left: false, right: false, actions:""},
+		{up: undefined, left: false, right: true, actions:""},
+		{up: undefined, left: false, right: undefined, actions:""},
+		{up: undefined, left: true, right: false, actions:""},
+		{up: undefined, left: undefined, right: false, actions:""},
+		{up: undefined, left: true, right: true, actions:""},
+		{up: undefined, left: undefined, right: true, actions:""},
+		{up: undefined, left: true, right: undefined, actions:""},
+		{up: undefined, left: undefined, right: undefined, actions:""}
 	];
-
+	var debugCount = 0;
 	function isRightSituation(element, index, arr) {
-		if ((element.front === this.front) && (element.left === this.left) && (element.right === this.right)) {
+		if ((element.up === this.up) && (element.left === this.left) && (element.right === this.right)) {
 			return index;
 		}
 	}
 
 	this.indexOfSituations = function(obj) {
 		return allSituations.findIndex(isRightSituation, obj);
+	};
+
+	this.getSituationByIndex = function(i) {
+		return allSituations[i];
 	};
 
 	var faceTos = {
@@ -139,8 +143,9 @@ function MazeGame(canvas, options) {
 		}
 	}
 
-	var stopedStatus = [];
+	var stopedStatus;
 	function initStopedStatus() {
+		stopedStatus = [];
 		for (y = 0; y < options.level_size[1]; y++) {
 			stopedStatus.push(new Array());
 			for (x = 0; x < options.level_size[0]; x++) {
@@ -499,7 +504,6 @@ function MazeGame(canvas, options) {
 	}
 
 	function reInit() {
-		// console.log(options.starting_position.x + ' ' + options.starting_position.y);
 		currentPos = Object.assign({}, options.starting_position);
 		path = [];
 		path.push(currentPos);
@@ -562,7 +566,6 @@ function MazeGame(canvas, options) {
 	}
 
 	function isJunction(pos) {
-		// console.log("isCrossPos" + pos.dir + faceTos);
 		let cell = maze.getCell(pos.x, pos.y),
 			f = faceTos[pos.dir],
 			exits = 0;
@@ -574,10 +577,8 @@ function MazeGame(canvas, options) {
 		}
 
 		if (exits >= 2) {
-			// console.log("cross pos: true")
 			return true;
 		} else {
-			// console.log("cross pos: false")
 			return false;
 		}
 	}
@@ -629,6 +630,8 @@ function MazeGame(canvas, options) {
 				solution.situations[index] = true;
 				solution.marks[index] = rules[i].mark;
 				solution.actionsList[index] = rules[i].actions;
+
+				allSituations[this.indexOfSituations(si)].actions = rules[i].actions;
 			}
 			return solution;
 		} else {
@@ -688,21 +691,16 @@ function MazeGame(canvas, options) {
 		}
 	};
 
-	// this.storeActions = function(actions) {
-	// 	let i = this.getShortSituation();
-	// 	solution.actionsList[i] = actions;
-	// 	// console.log('[storeActions]' + i + ' ' + solution.actionsList[i]);
-
-	// }
-
 	var ruleRecord = [], ruleNo = 0;
 	this.nextRuleNo = function() {
 		return ruleNo++;
 	};
 
-	this.setSituation = function(b, actions) {
-		let index = this.getShortSituation(), s = this.getSituation();
+	this.setSituation = function(val, actions, situ) {
+		let s = situ || this.getSituation();
 		
+		allSituations[this.indexOfSituations(s)].actions = actions;
+
 		// 0, 1, 2, 3, 8, 9, 10, 11
 		let res = [], situNums = [0b0000, 0b0001, 0b0010, 0b0011, 0b1000, 0b1001, 0b1010, 0b1011];
 		if (!joker.up) {
@@ -730,29 +728,28 @@ function MazeGame(canvas, options) {
 		}
 		ruleRecord.push(new Array());
 		for (var i = 0; i < situNums.length; i++) {
-			for (var j = 0; j < res.length; j++) {
-				if (((situNums[i] >> res[j].bit) & 0x1) !== res[j].val) {
-					break;
-				}
+			if (res.length) {
+				for (var j = 0; j < res.length; j++) {
+					if (((situNums[i] >> res[j].bit) & 0x1) !== res[j].val) {
+						break;
+					}
 
-				if (j === (res.length - 1)) {
-					solution.situations[situNums[i]] = b;
-					solution.actionsList[situNums[i]] = actions;
-					ruleRecord[ruleNo].push(situNums[i]);
+					if (j === (res.length - 1)) {
+						solution.situations[situNums[i]] = val;
+						solution.actionsList[situNums[i]] = actions;
+						ruleRecord[ruleNo].push(situNums[i]);
+					}
 				}
+			} else {
+				solution.situations[situNums[i]] = val;
+				solution.actionsList[situNums[i]] = actions;
+				ruleRecord[ruleNo].push(situNums[i]);
 			}
 		}
-
 		resetJoker();
 	}
 
 	this.removeRule = function(i) {
-		// let situs = ruleRecord[i];
-
-		// for (var i = 0; i < situs.length; i++) {
-		// 	solution.situations[situs[i]] = false;
-		// 	solution.actionsList[situs[i]] = "";
-		// }
 
 		let situs = allSituations[i];
 
@@ -762,7 +759,7 @@ function MazeGame(canvas, options) {
 
 		let res = [], situNums = [0b0000, 0b0001, 0b0010, 0b0011, 0b1000, 0b1001, 0b1010, 0b1011];
 		if (!joker.up) {
-			if (situs.front == true) {
+			if (situs.up == true) {
 				res.push({bit: 3, val: 1});
 			} else {
 				res.push({bit: 3, val: 0});
@@ -804,10 +801,7 @@ function MazeGame(canvas, options) {
 		initMsgType();
 
 		let i = this.getShortSituation();
-		// console.log("situation:" + i + " " + solution.situations[i]);
 		if (solution.situations[i] === true) {
-			// console.log(currentPos);
-			// console.log(stopedStatus[currentPos.x][currentPos.y][currentPos.dir]);
 			if (stopedStatus[currentPos.x][currentPos.y][currentPos.dir] === true) {
 				setMsgType('CIRCLE');
 				return false;
@@ -816,6 +810,7 @@ function MazeGame(canvas, options) {
 				return true;
 			}
 		} else {
+
 			stopedStatus[currentPos.x][currentPos.y][currentPos.dir] = true;
 			return false;
 		}
@@ -823,7 +818,6 @@ function MazeGame(canvas, options) {
 
 	this.getActionsOfSituation = function() {
 		let i = this.getShortSituation();
-		// console.log("action of situation:" + i + "##" + solution.actionsList[i])
 		return solution.actionsList[i];
 	};
 
@@ -878,7 +872,6 @@ function MazeGame(canvas, options) {
 			shortSituation += 1;
 		} 
 
-		// console.log("short:" + shortSituation);
 		return shortSituation;
 	};
 
@@ -909,44 +902,9 @@ function MazeGame(canvas, options) {
 
 	var turnDir = "up";
 	this.getForwardDir = function (turnTo) {
-		// simulateUpdateAngle(turnTo);
 		turnDir = turnTo;
 		let f = faceTos[currentPos.dir];
 		return f[turnTo];
-	};
-
-	this.situationChanged = function () {
-		// console.log("situationChanged");
-		let oldCell = maze.getCell(oldPos.x, oldPos.y),
-			newCell = maze.getCell(currentPos.x, currentPos.y);
-		if (oldCell === undefined || newCell === undefined) {
-			return undefined;
-		} else {
-			if (oldCell.constructor === Cell && newCell.constructor === Cell) {
-
-				let oldFaceTo = faceTos[oldPos.dir],
-					newFaceTo = faceTos[currentPos.dir];
-				// console.log('[situationChanged] oldfaceto:' + oldPos.dir +' newfaceto:' + currentPos.dir);
-
-				if (oldCell[oldFaceTo["up"]] !== newCell[newFaceTo["up"]]) {
-					return true;
-				}
-				if (oldCell[oldFaceTo["down"]] !== newCell[newFaceTo["down"]]) {
-					return true;
-				}
-				if (oldCell[oldFaceTo["left"]] !== newCell[newFaceTo["left"]]) {
-					return true;
-				}
-				if (oldCell[oldFaceTo["right"]] !== newCell[newFaceTo["right"]]) {
-					return true;
-				}
-
-				return false;
-			} else {
-				console.log("incorrect type of inputs");
-				return undefined;
-			}
-		}
 	};
 
 	var rotatedAngle = {
@@ -968,60 +926,6 @@ function MazeGame(canvas, options) {
 			startAngle = startAngle + rotatedAngle[direction];
 		}
 	}
-
-	// function simulateUpdateAngle(direction) {
-	// 	if (direction === "left" || direction === "right") {
-	// 		simulateAngle = simulateAngle + rotatedAngle[direction];
-	// 	}
-	// }
-
-	// back to same position and turn 360 grade.
-	// function turnCircle(pos) {
-	// 	// console.log('normal:' + pos.x + ' ' + pos.y + ' ' + positionAngles[pos.x][pos.y].visited);
-	// 	if (!positionAngles[pos.x][pos.y].visited) {
-	// 		return false;
-	// 	}
-	// 	if (!positionAngles[pos.x][pos.y].angle) {
-	// 		console.log('nomal, impossible.');
-	// 	}
-
-	// 	var angle = startAngle - positionAngles[pos.x][pos.y].angle;
-	// 	// console.log('normal: ' + startAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
-	// 	if ((angle % 360 === 0) && (angle !== 0)) {
-	// 		console.log('turn a circle at ame position.');
-	// 		return true;
-	// 	} else {
-	// 		return false;
-	// 	}
-		
-	// }
-
-	// function simulateTurnCircle(pos) {
-	// 	// console.log('simulate:' + pos.x + ' ' + pos.y);
-	// 	// console.log(simulatePositionAngles[pos.x][pos.y]);
-	// 	if (!simulatePositionAngles[pos.x][pos.y].visited) {
-	// 		return false;
-	// 	}
-	// 	if (!simulatePositionAngles[pos.x][pos.y].angle) {
-	// 		console.log('impossible.');
-	// 	}
-
-	// 	var angle = simulateAngle - simulatePositionAngles[pos.x][pos.y].angle;
-	// 	console.log( positionAngles[pos.x][pos.y] + ' ' + angle);
-	// 	// console.log('simulate angle:' + simulateAngle + ',curpos Angle:' + positionAngles[pos.x][pos.y].angle);
-
-	// 	if ((angle % 360 === 0) && (angle !== 0)) {
-	// 		// simulateAngle %= 360;
-	// 		console.log('simulate: turn a circle at ame position.');
-	// 		return true;
-	// 	} else {
-	// 		return false;
-	// 	}
-	// }
-
-	this.setCheckAngle = function(flag) {
-		checkAngle = flag;
-	};
 
 	this.foundExit = function() {
 		if (maze.isEnd(currentPos.x, currentPos.y)) {

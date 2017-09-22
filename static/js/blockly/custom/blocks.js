@@ -9,7 +9,7 @@ var blocksJson = [{
 },
 {
   "type": "tillend",
-  "message0": "wiederholen bis %1 %2 ausführen %3",
+  "message0": "wiederholen bis Ende %1 %2 ausführen %3",
   "args0": [
     {
       "type": "field_image",
@@ -170,7 +170,7 @@ var blocksJson = [{
   "inputsInline": true,
   "output": null,
   "colour": 210,
-  "tooltip": "",
+  "tooltip": "drehnt sich nach links +90 Grad, nach rechts -90 Grad",
   "helpUrl": ""
 },
 {
@@ -186,7 +186,7 @@ var blocksJson = [{
   ],
   "output": null,
   "colour": 195,
-  "tooltip": "",
+  "tooltip": "Der gedrehte Winkel zur originalen Richtung",
   "helpUrl": ""
 },
 {

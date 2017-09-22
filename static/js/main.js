@@ -69,6 +69,8 @@ function initApi(interpreter, scope) {
 }
 
 $(document).ready(function () {
+	$.fn.editable.defaults.mode = 'inline';
+
 	mazeGame = new MazeGame(document.getElementById('maze'), mazeOptions);
 	controller = new Controller(mazeGame);
 
@@ -132,12 +134,6 @@ $(document).ready(function () {
 		
 			nextStep();
   		}
-        // console.log(code);
-        // try {
-        //     eval(code);
-        // } catch (e) {
-        //     alert(e);
-        // }
     });
 
 	$("#options form").on('submit', function () {
@@ -168,6 +164,7 @@ $(document).ready(function () {
 
 	$('#game-mode span').on('click', function() {
 		var game_mode = $(this).text();
+
 		if (game_mode === 'Blockly') {
 			$(this).text('Regel');
 			$('#mode-blockly').show();
@@ -208,9 +205,7 @@ $(document).ready(function () {
 			}
 			$.post('/api/solutions', {solution: mazeGame.solutionToJson(solutionName), username: gUsername}, 
 				function(data, status) {
-					if (!data.ok) {
-						alert(data.msg);
-					}
+					alert(data.msg);
 			});
 		} else if ($('#game-mode span').text() === 'Regel') {	//Blockly
 			var code = Blockly.Xml.workspaceToDom(workspace);
@@ -223,7 +218,6 @@ $(document).ready(function () {
 			}
 			$.post('/api/blocklys', {solution: solution, username: gUsername}, 
 				function(data, status) {
-					// console.log(data);
 					if (!data.ok) {
 						alert(data.msg);
 					}
@@ -292,9 +286,7 @@ $(document).ready(function () {
 			$.get('/api/solutions/'+$(this).text(), {username: gUsername}, 
 			function(data) {
 				if (data.ok) {
-					// console.log(data.res);
 					var solutionObj = mazeGame.updateSolutionObj(data.res);
-					// console.log(solutionObj);
 					loadSolutionOfRule(solutionObj);			
 				} else {
 					alert(data.msg)
@@ -315,17 +307,18 @@ $(document).ready(function () {
 
 	$('#run-solution').on('click', function() {
 		mazeGame.reset();
-		if ($('#game-mode span').text() === 'Blockly') {
+		// if ($('#game-mode span').text() === 'Blockly') {
 			$('#action-list').text('');
 
 			let actionsText = mazeGame.getActionsOfSituation();
-			// console.log('actionsText:' + actionsText)
+			console.log('actionsText:' + actionsText);
 			if (!actionsText) {
 				alert('no rule for this situation.');
 			}
 			mazeGame.saveCurPos();
 			do {
 				if (simulateActions(actionsText) === false) {
+					console.log('false');
 					break;
 				}
 				// update the rule (actions)
@@ -333,16 +326,6 @@ $(document).ready(function () {
 			} while (mazeGame.isSituationExisted());
 
 			executeActions(moveList);
-		}
-
-		// } else if ($('#game-mode span').text() === 'Regel') {
-	 //        var code = Blockly.JavaScript.workspaceToCode(workspace);
-	 //        console.log(code);
-	 //        try {
-	 //            eval(code);
-	 //        } catch (e) {
-	 //            alert(e);
-	 //        }
 		// }
 	});
 
@@ -357,9 +340,7 @@ $(document).ready(function () {
 		$('#alert-msg span').text('Stelle neue Regel.')
 		showSituation();
 	});
-
-	$('#rule-list').delegate('a', 'click', function() {
-		console.log($(this).attr('name'));
+	$('#rule-list').delegate('a[class="badge"]', 'click', function() {
 		mazeGame.removeRule($(this).attr('name'));
 		$(this).parent().parent().remove();
 	});
@@ -368,11 +349,6 @@ $(document).ready(function () {
 		mazeGame.removeRule($(this).attr('name'));
 		$(this).parent().remove();
 	});
-
-	// $('#place-mark').on('click', function() {
-	// 	mazeGame.placeMark();
-	// 	showSituation();
-	// });
 
 	$('#mymark').on('click', function() {
 		var str = $(this).text();
@@ -405,17 +381,17 @@ $(document).ready(function () {
 	$('#execute-action').on('click', function() {
 		let actionsText = $('#actions').val(), 
 			rule = {
-				front: $('#myup').text() !== "Joker" ? $('#myup').text().substring(6):$('#myup').text(), 
+				up: $('#myup').text() !== "Joker" ? $('#myup').text().substring(6):$('#myup').text(), 
 				left: $('#myleft').text() !== "Joker" ? $('#myleft').text().substring(6):$('#myleft').text(),
 				right: $('#myright').text() !== "Joker" ? $('#myright').text().substring(7):$('#myright').text(),
 				actions: $('#actions').val()
 			},
 			situ = {
-				front: $('#myup').text() !== "Joker" ? statusToBoolean[$('#myup').text().substring(6)]:undefined, 
+				up: $('#myup').text() !== "Joker" ? statusToBoolean[$('#myup').text().substring(6)]:undefined, 
 				left: $('#myleft').text() !== "Joker" ? statusToBoolean[$('#myleft').text().substring(6)]:undefined,
 				right: $('#myright').text() !== "Joker" ? statusToBoolean[$('#myright').text().substring(7)]:undefined,
 			};
-		console.log(situ);
+
 		if (!actionsText) {
 			return;
 		}
@@ -424,21 +400,65 @@ $(document).ready(function () {
 		mazeGame.setSituation(true, actionsText);
 		// 2. show rule
 		var ruleSelector = $('#rule-list tr a[name=\"' + mazeGame.indexOfSituations(situ) + '\"]');
-		console.log('length:' + ruleSelector.length);	
-		// console.log('#rule-list tr a[name=\"' + mazeGame.indexOfSituations(situ) + '\"]');
 		if (ruleSelector.length) {
 			var tdChild = ruleSelector.parent();
 			tdChild.html(rule.actions + ruleSelector.clone()[0].outerHTML);
 		} else {
-			$('#rule-list').append('<tr><td>' + rule.front + '</td>' 
-			 + '<td>'+ rule.left + '</td>'
-			 + '<td>' + rule.right + '</td>' 
+			$('#rule-list').append('<tr><td><a name="editable">' + rule.up + '</a></td>' 
+			 + '<td><a name="editable">'+ rule.left + '</a></td>'
+			 + '<td><a name="editable">' + rule.right + '</a></td>' 
 			 + '<td>' + rule.actions
 			 // + '<a class="badge" name="' + mazeGame.nextRuleNo() 
 			 + '<a class="badge" name="' + mazeGame.indexOfSituations(situ)
 			 + '" style="float: right">' + '&times;</a></td></tr>');
+
+			$('a[name="editable"]').editable({
+				type: 'select',
+				title: 'select',
+				source: {1: "Joker", 2: "Frei", 3: "Belegt"},
+				success: function(response, newValue) {
+					// set situation
+					var col = $(this).parent().parent().children().index($(this).parent());
+					var index = $(this).parent().parent().children().last().children().attr('name');
+			    	var existedSitu = mazeGame.getSituationByIndex(index);
+			    	var dir;
+			    	switch(col) {
+			    		case 0:
+			    			dir = "up";
+			    			break;
+			    		case 1:
+			    			dir = "left";
+			    			break;
+			    		case 2:
+			    			dir = "right";
+			    			break;
+			    	}
+			    	switch(newValue) {
+			    		case "1": //Joker
+			    			existedSitu[dir] = undefined;
+			    			break;
+			    		case "2": // Frei
+			    			existedSitu[dir] = false;
+			    			break;
+			    		case "3": // Belegt
+			    			existedSitu[dir] = true;
+			    			break;
+			    	}
+			    	if (existedSitu.up === undefined) {
+			    			mazeGame.setJoker("up", true);
+			    	}
+			    	if (existedSitu.left === undefined) {
+			    			mazeGame.setJoker("left", true);
+			    	}
+			    	if (existedSitu.right === undefined) {
+			    			mazeGame.setJoker("right", true);
+			    	}
+			    	mazeGame.setSituation(true, existedSitu.actions, existedSitu);
+			    	$(this).parent().parent().children().last().children().attr('name', mazeGame.indexOfSituations(existedSitu));
+			    }
+			});
 		}
-		
+	
 		$('#situation-modal').modal('hide');
 
 		$('#situation-modal').one('hidden.bs.modal', function (e) {
@@ -456,7 +476,6 @@ $(document).ready(function () {
 			if (!actionsText) {
 				break;
 			}
-			console.log('actionsText:' + actionsText);
 		} while (mazeGame.isSituationExisted());
 
 		executeActions(moveList);
@@ -465,10 +484,11 @@ $(document).ready(function () {
 	showRule();
 
 	$('#reset-maze').on('click', function() {
-		$('#action-list').text('');
-		$('#rule-list').text('');
+		if (taskId) {
+			algoExit = true;
+		}
 		mazeGame.reset();
-		algoExit = true;
+		$('#action-list').text('');
 		$('#tremaux-algo').removeClass().addClass('btn');
 		$('#hand-algo').removeClass().addClass('btn');
 		$("#run-code").removeClass().addClass('btn btn-default');
@@ -544,7 +564,6 @@ $(document).ready(function () {
 	$('#tremaux-algo').on('click', function() {
 		$('#action-list').text('');
 		$('#rule-list').text('');
-		// console.log('[end]' + controller.end);
 		if ($(this).text() === 'Zurücksetzen') {
 			$(this).text('Algo 3');
 			mazeGame.reset();
@@ -578,10 +597,10 @@ $(document).ready(function () {
 $(window).on('keydown', function (e) {
 	var keyCode = e.keyCode || e.which,
 		keyCodes = {
-			37: "left",
-			38: "up",
-			39: "right",
-			40: "down"
+			// 37: "left",
+			// 38: "up",
+			// 39: "right",
+			// 40: "down"
 			// 65: "left",
 			// 87: "up",
 			// 68: "right",
@@ -610,17 +629,84 @@ function loadSolutionOfRule(solution) {
 		for (var i = 0; i < solution.situations.length; i++) {
 			let situation = solution.situations[i];
 			if (situation === true) {
-				situation = mazeGame.shortSituationToObj(i);
-				$('#rule-list').append(
-				'<tr><td>' + (situation.up === true?'Belegt':'Frei') + '</td>' 
-				+ '<td>'+ (situation.left === true?'Belegt':'Frei') + '</td>'
-		 		+ '<td>' + (situation.right === true?'Belegt':'Frei') + '</td>' 
-		 		+ '<td>' + solution.actionsList[i]
-		 		+ '<a class="badge" name="' + i 
-		 		+ '" style="float: right">' + '&times;</a></td></tr>');
+				var s = mazeGame.shortSituationToObj(i);
+				var r = {
+					up: s.up === true?'Belegt':'Frei',
+					left: s.left === true?'Belegt':'Frei',
+					right: s.right === true?'Belegt':'Frei',
+					actions: solution.actionsList[i]
+				}
+				tableEditable(r, s);
+				// situation = mazeGame.shortSituationToObj(i);
+				// $('#rule-list').append(
+				// '<tr><td>' + (situation.up === true?'Belegt':'Frei') + '</td>' 
+				// + '<td>'+ (situation.left === true?'Belegt':'Frei') + '</td>'
+		 	// 	+ '<td>' + (situation.right === true?'Belegt':'Frei') + '</td>' 
+		 	// 	+ '<td>' + solution.actionsList[i]
+		 	// 	+ '<a class="badge" name="' + i 
+		 	// 	+ '" style="float: right">' + '&times;</a></td></tr>');
 			}
 		}
 	}
+
+
+}
+
+function tableEditable(rule, situ) {
+	$('#rule-list').append('<tr><td><a name="editable">' + rule.up + '</a></td>' 
+			 + '<td><a name="editable">'+ rule.left + '</a></td>'
+			 + '<td><a name="editable">' + rule.right + '</a></td>' 
+			 + '<td>' + rule.actions
+			 + '<a class="badge" name="' + mazeGame.indexOfSituations(situ)
+			 + '" style="float: right">' + '&times;</a></td></tr>');
+
+			$('a[name="editable"]').editable({
+				type: 'select',
+				title: 'select',
+				source: {1: "Joker", 2: "Frei", 3: "Belegt"},
+				success: function(response, newValue) {
+
+					// set situation
+					var col = $(this).parent().parent().children().index($(this).parent());
+					var index = $(this).parent().parent().children().last().children().attr('name');
+			    	var existedSitu = Object.assign({}, mazeGame.getSituationByIndex(index));
+
+			    	var dir;
+			    	switch(col) {
+			    		case 0:
+			    			dir = "up";
+			    			break;
+			    		case 1:
+			    			dir = "left";
+			    			break;
+			    		case 2:
+			    			dir = "right";
+			    			break;
+			    	}
+			    	switch(newValue) {
+			    		case "1": //Joker
+			    			existedSitu[dir] = undefined;
+			    			break;
+			    		case "2": // Frei
+			    			existedSitu[dir] = false;
+			    			break;
+			    		case "3": // Belegt
+			    			existedSitu[dir] = true;
+			    			break;
+			    	}
+			    	if (existedSitu.up === undefined) {
+			    			mazeGame.setJoker("up", true);
+			    	}
+			    	if (existedSitu.left === undefined) {
+			    			mazeGame.setJoker("left", true);
+			    	}
+			    	if (existedSitu.right === undefined) {
+			    			mazeGame.setJoker("right", true);
+			    	}
+			    	mazeGame.setSituation(true, existedSitu.actions, existedSitu);
+			    	$(this).parent().parent().children().last().children().attr('name', mazeGame.indexOfSituations(existedSitu));
+			    }
+			});
 }
 
 function loadSolutionOfBlockly(solution) {
@@ -635,6 +721,12 @@ function showRule() {
 	$('#game-mode span').text('Blockly');
 	$('#mode-blockly').hide();
 	$('#mode-rule').show();
+}
+
+function showBlockly() {
+	$('#game-mode span').text('Regle');
+	$('#mode-blockly').show();
+	$('#mode-rule').hide();
 }
 
 function addAction(action) {
@@ -695,10 +787,21 @@ function moveDir(dir, inAlgo=false) {
 }
 
 function executeActions(actions) {
+	algoExit = false;
 	mazeGame.restoreCurPos();
 	let i = 0,len = actions.length;
 	var wrapperMoveDir = function() {
-		setTimeout(function() {
+		if (algoExit) {
+			clearTimeouts();
+			algoExit = false;
+			moveList = [];	
+			mazeGame.reset();
+			return ;
+		}
+		taskId = setTimeout(function() {
+			if (algoExit) {
+				return ;
+			}
 			try{
 				moveDir(actions[i++]);
 			} catch (e) {
@@ -719,7 +822,6 @@ function executeActions(actions) {
 function initModal() {
 	moveList = [];
 	if (!mazeGame.foundExit()) {
-		// console.log(mazeGame.getMsgType());
 		if (!modalIsHided) {
 			$('#situation-modal').off('hidden.bs.modal').one('hidden.bs.modal', function (e) {
 				if (mazeGame.getMsgType().WALL) {
